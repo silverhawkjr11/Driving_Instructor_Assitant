@@ -17,4 +17,25 @@
   <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
 </table>
 
-<button mat-raised-button color="primary">Add Student</button>
+<button mat-raised-button color="primary" (click)="showAddStudentForm()">Add Student</button>
+<mat-card *ngIf="showForm">
+  <mat-card-content>
+    <mat-form-field>
+      <mat-label>Name</mat-label>
+      <input matInput [(ngModel)]="newStudent.name" />
+    </mat-form-field>
+    <div></div>
+    <!-- TODO: date picker returns a string like Mon Dec 02 2024 00:00:00 GMT+0200 (Israel Standard Time) change it -->
+    <mat-form-field>
+      <mat-label>Last Lesson</mat-label>
+      <input matInput [matDatepicker]="picker" [(ngModel)]="newStudent.lastLesson" />
+      <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+      <mat-datepicker #picker></mat-datepicker>
+    </mat-form-field>
+
+    <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
+      <button mat-raised-button color="primary" (click)="addStudent()">Submit</button>
+      <button mat-stroked-button color="warn" (click)="hideAddStudentForm()">Cancel</button>
+    </div>
+  </mat-card-content>
+</mat-card>

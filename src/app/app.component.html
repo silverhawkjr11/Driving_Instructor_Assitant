@@ -2,6 +2,7 @@
   <mat-sidenav #drawer mode="side" opened>
     <p><a mat-button routerLink="/my-students" routerLinkActive="active">My Students</a></p>
     <p><a mat-button routerLink="/schedule" routerLinkActive="active">Schedule</a></p>
+    <p><a routerLink="/settings" routerLinkActive="active">Settings</a></p>
   </mat-sidenav>
 
   <mat-sidenav-content>
@@ -15,3 +16,10 @@
     <router-outlet></router-outlet>
   </mat-sidenav-content>
 </mat-sidenav-container>
+
+<!-- <mat-form-field> -->
+<!--   <mat-label>Theme</mat-label> -->
+<!--   <mat-select (selectionChange)="setTheme($event.value)"> -->
+<!--     <mat-option *ngFor="let theme of themes" [value]="theme.value">{{ theme.name }}</mat-option> -->
+<!--   </mat-select> -->
+<!-- </mat-form-field> -->
