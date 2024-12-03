@@ -1,1 +1,18 @@
-/* You can add global styles to this file, and also import other style files */
+/* styles.scss or styles.css */
+nav {
+  margin-bottom: 20px;
+}
+
+nav a {
+  text-decoration: none;
+  margin-right: 10px;
+  color: blue;
+}
+
+nav a.active {
+  font-weight: bold;
+  color: darkblue;
+}
+
+html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
