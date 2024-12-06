@@ -31,20 +31,23 @@
   @if (isMonthView()) {
   <div class="month-view">
     <div class="month-header">
-      @for (day of weekDays; track day) {
-      <div class="weekday">{{day}}</div>
+      @for (dayName of weekDays; track dayName) {
+      <div class="weekday">{{dayName}}</div>
       }
     </div>
     <div class="month-grid">
       @for (week of getMonthWeeks(); track week) {
       <div class="week">
-        @for (day of week; track day) {
-        <div class="day" [class.different-month]="!isSameMonth(day)" [class.today]="isToday(day)"
-          (click)="onDayClick(day)">
-          <div class="day-number">{{day.getDate()}}</div>
+        @for (date of week; track date) {
+        <div class="day" [class.different-month]="!isSameMonth(date)" [class.today]="isToday(date)"
+          (click)="onDayClick(date)">
+          <div class="day-number">{{date.getDate()}}</div>
           <div class="day-events">
-            @for (event of getEventsForDay(day); track event) {
-            <div class="event-dot" [style.backgroundColor]="event.color || '#1976d2'" [matTooltip]="event.title">
+            @for (event of getEventsForDay(date); track event) {
+            <div class="event-item" cdkDrag [cdkDragBoundary]="'.month-grid'"
+              (cdkDragEnded)="onMonthEventDragEnded($event, event, date)"
+              [style.backgroundColor]="event.color || '#1976d2'" [matTooltip]="event.title">
+              {{ event.title }}
             </div>
             }
           </div>
@@ -83,11 +86,13 @@
 
       <!-- Events -->
       <div class="events-layer">
-        <div class="event" *ngFor="let event of getVisibleEvents()" [style.top.px]="getEventTop(event)"
+        <div class="event" *ngFor="let event of getVisibleEvents()" cdkDrag [cdkDragDisabled]="isMonthView()"
+          (cdkDragEnded)="onEventDragEnded($event, event)" [style.top.px]="getEventTop(event)"
           [style.left.%]="getEventLeft(event)" [style.width.%]="getEventWidth()"
           [style.height.px]="getEventHeight(event)" [style.backgroundColor]="event.color || '#1976d2'"
           (click)="editEvent(event)">
           {{ event.title }}
+          <div class="event-resize-handle" (mousedown)="startResize($event, event)"></div>
         </div>
       </div>
     </div>
