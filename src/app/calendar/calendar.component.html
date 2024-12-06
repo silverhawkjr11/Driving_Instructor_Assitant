@@ -1,21 +1,52 @@
 <div class="calendar-container mat-elevation-z2">
   <!-- Calendar Header -->
   <mat-toolbar color="primary">
-    <button mat-icon-button (click)="previousWeek()">
-      <mat-icon>chevron_left</mat-icon>
-    </button>
-    <span class="week-title">{{ currentWeekStart | date:'MMM d' }} - {{ currentWeekEnd | date:'MMM d, yyyy' }}</span>
-    <button mat-icon-button (click)="nextWeek()">
-      <mat-icon>chevron_right</mat-icon>
-    </button>
-    <span class="spacer"></span>
-    <button mat-raised-button (click)="openAddEventDialog()">
-      <mat-icon>add</mat-icon>
-      Add Event
-    </button>
+    <div class="toolbar-left">
+      <button mat-icon-button (click)="navigate('prev')">
+        <mat-icon>chevron_left</mat-icon>
+      </button>
+      <button mat-button (click)="goToToday()">Today</button>
+      <button mat-icon-button (click)="navigate('next')">
+        <mat-icon>chevron_right</mat-icon>
+      </button>
+      <span class="view-title">{{ getViewTitle() }}</span>
+    </div>
+
+    <div class="toolbar-right">
+      <mat-button-toggle-group [value]="currentView" (change)="onViewChange($event.value)">
+        <mat-button-toggle value="day">Day</mat-button-toggle>
+        <mat-button-toggle value="3day">3 Days</mat-button-toggle>
+        <mat-button-toggle value="week">Week</mat-button-toggle>
+        <mat-button-toggle value="month">Month</mat-button-toggle>
+      </mat-button-toggle-group>
+
+      <button mat-raised-button (click)="openAddEventDialog()">
+        <mat-icon>add</mat-icon>
+        Add Event
+      </button>
+    </div>
   </mat-toolbar>
 
   <!-- Calendar Grid -->
+  @if (isMonthView()) {
+  <div class="month-view">
+    <div class="month-header">
+      <div class="weekday" *ngFor="let day of weekDays">{{ day }}</div>
+    </div>
+    <div class="month-grid">
+      <div class="week" *ngFor="let week of getMonthWeeks()">
+        <div class="day" *ngFor="let day of week" [class.different-month]="!isSameMonth(day)"
+          [class.today]="isToday(day)" (click)="onDayClick(day)">
+          <div class="day-number">{{ day.getDate() }}</div>
+          <div class="day-events">
+            <div class="event-dot" *ngFor="let event of getEventsForDay(day)" [style.backgroundColor]="event.color">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  } @else {
   <div class="calendar-grid">
     <!-- Time Labels -->
     <div class="time-labels">
@@ -28,7 +59,7 @@
     <div class="days-container">
       <!-- Day Headers -->
       <div class="day-headers">
-        <div class="day-header" *ngFor="let day of days">
+        <div class="day-header" *ngFor="let day of getVisibleDays()">
           <div class="day-name">{{ day | date:'EEE' }}</div>
           <div class="day-date">{{ day | date:'d' }}</div>
         </div>
@@ -36,7 +67,7 @@
 
       <!-- Time Slots -->
       <div class="time-slots">
-        <div class="day-column" *ngFor="let day of days">
+        <div class="day-column" *ngFor="let day of getVisibleDays()">
           <div class="time-slot" *ngFor="let hour of hours" (click)="openAddEventDialog(day, hour)">
           </div>
         </div>
@@ -44,12 +75,14 @@
 
       <!-- Events -->
       <div class="events-layer">
-        <div class="event" *ngFor="let event of events" [style.top.px]="getEventTop(event)"
-          [style.left.%]="getEventLeft(event)" [style.height.px]="getEventHeight(event)"
-          [style.backgroundColor]="event.color || '#1976d2'" (click)="editEvent(event)">
+        <div class="event" *ngFor="let event of getVisibleEvents()" [style.top.px]="getEventTop(event)"
+          [style.left.%]="getEventLeft(event)" [style.width.%]="getEventWidth()"
+          [style.height.px]="getEventHeight(event)" [style.backgroundColor]="event.color || '#1976d2'"
+          (click)="editEvent(event)">
           {{ event.title }}
         </div>
       </div>
     </div>
   </div>
+  }
 </div>

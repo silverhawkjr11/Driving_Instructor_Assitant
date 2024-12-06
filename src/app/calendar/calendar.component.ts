@@ -6,7 +6,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { AddEventDialogComponent } from '../event-dialog/event-dialog.component';
-
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
+export type CalendarViewType = 'day' | '3day' | 'week' | 'month';
 interface CalendarEvent {
   id: number;
   title: string;
@@ -23,7 +24,8 @@ interface CalendarEvent {
     MatToolbarModule,
     MatButtonModule,
     MatIconModule,
-    MatDialogModule
+    MatDialogModule,
+    MatButtonToggleModule
   ],
   templateUrl: './calendar.component.html',
   styleUrls: ['./calendar.component.scss']
@@ -31,18 +33,20 @@ interface CalendarEvent {
 export class CalendarComponent implements OnInit {
   private dialog = inject(MatDialog);
 
-  currentWeekStart: Date;
+  currentDate: Date;
+  currentView: CalendarViewType = 'week';
   days: Date[] = [];
   hours: number[] = Array.from({ length: 24 }, (_, i) => i);
   events: CalendarEvent[] = [];
+  weekDays: string[] = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
   constructor() {
-    this.currentWeekStart = this.getStartOfWeek(new Date());
+    this.currentDate = new Date();
     this.updateDays();
   }
 
   ngOnInit() {
-    // Add some sample events
+    // Sample events
     this.events = [
       {
         id: 1,
@@ -61,50 +65,183 @@ export class CalendarComponent implements OnInit {
     ];
   }
 
-  get currentWeekEnd(): Date {
-    const end = new Date(this.currentWeekStart);
-    end.setDate(end.getDate() + 6);
-    return end;
+  // View management
+  onViewChange(view: CalendarViewType) {
+    this.currentView = view;
+    this.updateDays();
   }
 
-  getStartOfWeek(date: Date): Date {
-    const start = new Date(date);
-    start.setDate(start.getDate() - start.getDay());
-    start.setHours(0, 0, 0, 0);
-    return start;
+  getVisibleDays(): Date[] {
+    switch (this.currentView) {
+      case 'day':
+        return [this.currentDate];
+      case '3day':
+        return this.days.slice(0, 3);
+      case 'week':
+        return this.days;
+      default:
+        return this.days;
+    }
   }
 
+  getViewTitle(): string {
+    const monthYear = this.currentDate.toLocaleDateString('default', { month: 'long', year: 'numeric' });
+    if (this.currentView === 'month') {
+      return monthYear;
+    }
+
+    const visibleDays = this.getVisibleDays();
+    const start = visibleDays[0].toLocaleDateString('default', { month: 'short', day: 'numeric' });
+    const end = visibleDays[visibleDays.length - 1].toLocaleDateString('default', { month: 'short', day: 'numeric', year: 'numeric' });
+    return `${start} - ${end}`;
+  }
+
+  // Navigation
+  navigate(direction: 'prev' | 'next') {
+    const amount = this.currentView === 'month' ? 1 :
+      this.currentView === 'week' ? 7 :
+        this.currentView === '3day' ? 3 : 1;
+
+    const days = direction === 'prev' ? -amount : amount;
+    this.currentDate = new Date(this.currentDate.setDate(this.currentDate.getDate() + days));
+    this.updateDays();
+  }
+
+  goToToday() {
+    this.currentDate = new Date();
+    this.updateDays();
+  }
+
+  // Event handling
+  getVisibleEvents(): CalendarEvent[] {
+    const visibleDays = this.getVisibleDays();
+    const start = visibleDays[0];
+    const end = visibleDays[visibleDays.length - 1];
+
+    return this.events.filter(event => {
+      return event.start >= start && event.start <= end;
+    });
+  }
+
+  getEventWidth(): number {
+    switch (this.currentView) {
+      case 'day':
+        return 95;
+      case '3day':
+        return 31;
+      case 'week':
+        return 13.5;
+      default:
+        return 13.5;
+    }
+  }
+
+  getEventLeft(event: CalendarEvent): number {
+    const dayIndex = this.getVisibleDays().findIndex(day =>
+      this.isSameDay(day, event.start)
+    );
+
+    switch (this.currentView) {
+      case 'day':
+        return 2;
+      case '3day':
+        return dayIndex * 33 + 1;
+      case 'week':
+        return dayIndex * 14.285;
+      default:
+        return dayIndex * 14.285;
+    }
+  }
+
+  // Month view specific methods
+  isMonthView(): boolean {
+    return this.currentView === 'month';
+  }
+
+  getMonthWeeks(): Date[][] {
+    const firstDay = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth(), 1);
+    const lastDay = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth() + 1, 0);
+
+    const weeks: Date[][] = [];
+    let currentWeek: Date[] = [];
+
+    // Add days from previous month
+    const firstDayOfWeek = firstDay.getDay();
+    for (let i = firstDayOfWeek; i > 0; i--) {
+      const day = new Date(firstDay);
+      day.setDate(day.getDate() - i);
+      currentWeek.push(day);
+    }
+
+    // Add days of current month
+    for (let day = new Date(firstDay); day <= lastDay; day.setDate(day.getDate() + 1)) {
+      if (currentWeek.length === 7) {
+        weeks.push(currentWeek);
+        currentWeek = [];
+      }
+      currentWeek.push(new Date(day));
+    }
+
+    // Add days from next month
+    while (currentWeek.length < 7) {
+      const day = new Date(currentWeek[currentWeek.length - 1]);
+      day.setDate(day.getDate() + 1);
+      currentWeek.push(day);
+    }
+    weeks.push(currentWeek);
+
+    return weeks;
+  }
+
+  getEventsForDay(day: Date): CalendarEvent[] {
+    return this.events.filter(event => this.isSameDay(event.start, day));
+  }
+
+  // Utility methods
   updateDays() {
-    this.days = Array.from({ length: 7 }, (_, i) => {
-      const day = new Date(this.currentWeekStart);
+    if (this.currentView === 'month') {
+      return;
+    }
+
+    const numDays = this.currentView === 'week' ? 7 :
+      this.currentView === '3day' ? 3 : 1;
+
+    const startDate = new Date(this.currentDate);
+    if (this.currentView === 'week') {
+      startDate.setDate(startDate.getDate() - startDate.getDay());
+    }
+
+    this.days = Array.from({ length: numDays }, (_, i) => {
+      const day = new Date(startDate);
       day.setDate(day.getDate() + i);
       return day;
     });
   }
 
-  previousWeek() {
-    this.currentWeekStart.setDate(this.currentWeekStart.getDate() - 7);
-    this.updateDays();
+  isSameDay(date1: Date, date2: Date): boolean {
+    return date1.getDate() === date2.getDate() &&
+      date1.getMonth() === date2.getMonth() &&
+      date1.getFullYear() === date2.getFullYear();
   }
 
-  nextWeek() {
-    this.currentWeekStart.setDate(this.currentWeekStart.getDate() + 7);
-    this.updateDays();
+  isSameMonth(date: Date): boolean {
+    return date.getMonth() === this.currentDate.getMonth();
   }
 
+  isToday(date: Date): boolean {
+    return this.isSameDay(date, new Date());
+  }
+
+  // Event methods remain the same as before
   getEventTop(event: CalendarEvent): number {
     const hours = event.start.getHours();
     const minutes = event.start.getMinutes();
     return hours * 60 + minutes;
   }
 
-  getEventLeft(event: CalendarEvent): number {
-    return event.start.getDay() * 14.285;
-  }
-
   getEventHeight(event: CalendarEvent): number {
     const diff = event.end.getTime() - event.start.getTime();
-    return Math.max(30, diff / (1000 * 60)); // Convert ms to minutes
+    return Math.max(30, diff / (1000 * 60));
   }
 
   openAddEventDialog(day?: Date, hour?: number) {
@@ -124,6 +261,12 @@ export class CalendarComponent implements OnInit {
         });
       }
     });
+  }
+
+  onDayClick(day: Date) {
+    this.currentDate = new Date(day);
+    this.currentView = 'day';
+    this.updateDays();
   }
 
   editEvent(event: CalendarEvent) {
