@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { MatTableModule } from '@angular/material/table';
 import { CommonModule } from '@angular/common';
 import { StudentService } from '../../services/student.service';
@@ -8,7 +8,12 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { FormsModule } from '@angular/forms';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
-import { MatButton } from '@angular/material/button';
+import { MatButton, MatButtonModule } from '@angular/material/button';
+import { MatSortModule } from '@angular/material/sort';
+import { MatExpansionModule } from '@angular/material/expansion';
+
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { MatIcon } from '@angular/material/icon';
 @Component({
   standalone: true,
   selector: 'app-my-students',
@@ -20,52 +25,67 @@ import { MatButton } from '@angular/material/button';
     MatFormFieldModule,
     MatInputModule,
     FormsModule,
+    ReactiveFormsModule,
     MatDatepickerModule,
     MatNativeDateModule,
-    MatButton
+    MatButtonModule,
+    MatSortModule,
+    MatExpansionModule,
+    MatIcon
   ],
 })
-export class MyStudentsComponent implements OnInit {
-  // TODO: add due payment and num of lessons so far and more
-  displayedColumns: string[] = ['id', 'name', 'lastLesson'];
-  students = [
-    { id: 1, name: 'Alice', lastLesson: '2023-10-01' },
-    { id: 2, name: 'Bob', lastLesson: '2023-10-02' },
-    { id: 3, name: 'Charlie', lastLesson: '2023-10-03' }
-  ];
-  newStudent = { name: '', lastLesson: '' };
-  showForm = false;
+export class MyStudentsComponent {
+  private studentService = inject(StudentService);
 
-  constructor(private studentService: StudentService) { }
+  students = this.studentService.getStudents();
+  showForm = signal(false);
+  displayedColumns = ['date', 'duration', 'notes'];
 
-  ngOnInit() {
-    this.students = this.studentService.getStudents();
-  }
+  studentForm = new FormGroup({
+    name: new FormControl('', Validators.required),
+    lastLesson: new FormControl(null, Validators.required),
+  });
+
+  lessonForm = new FormGroup({
+    date: new FormControl(null, Validators.required),
+    duration: new FormControl(null, [Validators.required, Validators.min(1)]),
+    notes: new FormControl(''),
+  });
 
   showAddStudentForm() {
-    this.showForm = true;
+    this.showForm.set(true);
   }
 
   hideAddStudentForm() {
-    this.showForm = false;
-    this.newStudent = { name: '', lastLesson: '' }; // Clear form
+    this.showForm.set(false);
+    this.studentForm.reset();
   }
 
   addStudent() {
-    if (!this.newStudent.name || !this.newStudent.lastLesson) {
-      alert('Please fill in all fields.');
-      return;
-    }
+    if (this.studentForm.valid) {
+      const formValue = this.studentForm.value;
+      const newStudent = {
+        id: Date.now(),
+        name: formValue.name!,
+        lastLesson: formValue.lastLesson!,
+      };
 
-    const newStudent = {
-      id: this.students.length + 1,
-      name: this.newStudent.name,
-      lastLesson: this.newStudent.lastLesson,
-    };
-    this.studentService.addStudent(newStudent);
-    this.students = [...this.studentService.getStudents()]; // Create a new array reference
-    this.hideAddStudentForm(); // Close the form after adding
-    console.log('Added student:', newStudent);
-    console.log('All students:', this.students);
+      this.studentService.addStudent(newStudent);
+      this.hideAddStudentForm();
+    }
+  }
+
+  addLesson(studentId: number) {
+    if (this.lessonForm.valid) {
+      const formValue = this.lessonForm.value;
+      const newLesson = {
+        date: formValue.date!,
+        duration: formValue.duration!,
+        notes: formValue.notes || '',
+      };
+
+      this.studentService.addLesson(studentId, newLesson);
+      this.lessonForm.reset();
+    }
   }
 }
