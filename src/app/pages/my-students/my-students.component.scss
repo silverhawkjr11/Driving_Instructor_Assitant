@@ -1,4 +1,102 @@
-mat-card {
-  max-width: 400px;
-  margin: 20px auto;
-}
+ .container {
+   padding: 16px;
+   max-width: 960px;
+   margin: 0 auto;
+ }
+
+ mat-expansion-panel {
+   margin-bottom: 8px;
+ }
+
+ mat-panel-title {
+   flex: 0 0 200px;
+ }
+
+ mat-panel-description {
+   color: rgba(255, 255, 255, 0.7);
+ }
+
+ .lessons-section {
+   margin-top: 16px;
+ }
+
+ .lessons-table {
+   width: 100%;
+   margin-bottom: 24px;
+ }
+
+ .no-lessons {
+   color: rgba(255, 255, 255, 0.5);
+   font-style: italic;
+   margin: 16px 0;
+ }
+
+ .lesson-form {
+   background: rgba(255, 255, 255, 0.05);
+   padding: 16px;
+   border-radius: 4px;
+ }
+
+ .form-row {
+   display: flex;
+   gap: 16px;
+   margin-bottom: 16px;
+ }
+
+ .form-row mat-form-field {
+   flex: 1;
+ }
+
+ .add-student-fab {
+   position: fixed;
+   bottom: 24px;
+   right: 24px;
+ }
+
+ .overlay {
+   position: fixed;
+   top: 0;
+   left: 0;
+   right: 0;
+   bottom: 0;
+   background: rgba(0, 0, 0, 0.5);
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   z-index: 1000;
+ }
+
+ .dialog-container {
+   background: #424242;
+   padding: 24px;
+   border-radius: 8px;
+   width: 90%;
+   max-width: 400px;
+ }
+
+ .dialog-container h2 {
+   margin: 0 0 24px 0;
+   color: white;
+ }
+
+ .dialog-container form {
+   display: flex;
+   flex-direction: column;
+   gap: 16px;
+ }
+
+ .form-actions {
+   display: flex;
+   justify-content: flex-end;
+   gap: 8px;
+   margin-top: 8px;
+ }
+
+ ::ng-deep .mat-expansion-panel-header {
+   height: 64px !important;
+ }
+
+ ::ng-deep .mat-expansion-panel-header-title,
+ ::ng-deep .mat-expansion-panel-header-description {
+   align-items: center;
+ }
