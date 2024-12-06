@@ -20,7 +20,7 @@ import { MatSelectModule } from '@angular/material/select';
     MatFormFieldModule,
     MatInputModule,
     MatDatepickerModule,
-    MatNativeDateModule,
+    MatNativeDateModule,  // Add this line
     MatSelectModule
   ],
   templateUrl: './event-dialog.component.html',

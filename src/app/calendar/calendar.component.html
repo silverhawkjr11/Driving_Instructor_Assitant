@@ -31,19 +31,27 @@
   @if (isMonthView()) {
   <div class="month-view">
     <div class="month-header">
-      <div class="weekday" *ngFor="let day of weekDays">{{ day }}</div>
+      @for (day of weekDays; track day) {
+      <div class="weekday">{{day}}</div>
+      }
     </div>
     <div class="month-grid">
-      <div class="week" *ngFor="let week of getMonthWeeks()">
-        <div class="day" *ngFor="let day of week" [class.different-month]="!isSameMonth(day)"
-          [class.today]="isToday(day)" (click)="onDayClick(day)">
-          <div class="day-number">{{ day.getDate() }}</div>
+      @for (week of getMonthWeeks(); track week) {
+      <div class="week">
+        @for (day of week; track day) {
+        <div class="day" [class.different-month]="!isSameMonth(day)" [class.today]="isToday(day)"
+          (click)="onDayClick(day)">
+          <div class="day-number">{{day.getDate()}}</div>
           <div class="day-events">
-            <div class="event-dot" *ngFor="let event of getEventsForDay(day)" [style.backgroundColor]="event.color">
+            @for (event of getEventsForDay(day); track event) {
+            <div class="event-dot" [style.backgroundColor]="event.color || '#1976d2'" [matTooltip]="event.title">
             </div>
+            }
           </div>
         </div>
+        }
       </div>
+      }
     </div>
   </div>
   } @else {

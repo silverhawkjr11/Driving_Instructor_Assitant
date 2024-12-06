@@ -7,6 +7,9 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { AddEventDialogComponent } from '../event-dialog/event-dialog.component';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
+import { MatTooltip } from '@angular/material/tooltip';
 export type CalendarViewType = 'day' | '3day' | 'week' | 'month';
 interface CalendarEvent {
   id: number;
@@ -25,7 +28,10 @@ interface CalendarEvent {
     MatButtonModule,
     MatIconModule,
     MatDialogModule,
-    MatButtonToggleModule
+    MatButtonToggleModule,
+    MatDatepickerModule,
+    MatNativeDateModule,  // Add this line
+    MatTooltip
   ],
   templateUrl: './calendar.component.html',
   styleUrls: ['./calendar.component.scss']
