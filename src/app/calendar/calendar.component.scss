@@ -1,0 +1,102 @@
+.calendar-container {
+  height: 800px;
+  display: flex;
+  flex-direction: column;
+  background: white;
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+.week-title {
+  margin: 0 20px;
+  font-size: 18px;
+}
+
+.calendar-grid {
+  display: flex;
+  flex: 1;
+  overflow: auto;
+}
+
+.time-labels {
+  width: 60px;
+  border-right: 1px solid #e0e0e0;
+}
+
+.time-label {
+  height: 60px;
+  padding: 5px;
+  text-align: right;
+  color: #666;
+  font-size: 12px;
+}
+
+.days-container {
+  flex: 1;
+  position: relative;
+}
+
+.day-headers {
+  display: flex;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.day-header {
+  flex: 1;
+  text-align: center;
+  padding: 10px;
+}
+
+.day-name {
+  font-weight: 500;
+}
+
+.day-date {
+  font-size: 12px;
+  color: #666;
+}
+
+.time-slots {
+  display: flex;
+}
+
+.day-column {
+  flex: 1;
+  border-right: 1px solid #e0e0e0;
+}
+
+.time-slot {
+  height: 60px;
+  border-bottom: 1px solid #e0e0e0;
+  cursor: pointer;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.04);
+  }
+}
+
+.events-layer {
+  position: absolute;
+  top: 41px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.event {
+  position: absolute;
+  width: 14.285%;
+  padding: 5px;
+  border-radius: 4px;
+  color: white;
+  font-size: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.2s;
+
+  &:hover {
+    transform: scale(1.02);
+  }
+}

@@ -1,11 +1,14 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { CalendarComponent } from '../../calendar/calendar.component';
 
 @Component({
   standalone: true,
   selector: 'app-schedule',
   templateUrl: './schedule.component.html',
-  imports: [CommonModule], // Import CommonModule for *ngFor
+  imports: [CommonModule,
+    CalendarComponent
+  ], // Import CommonModule for *ngFor
 })
 export class ScheduleComponent {
   schedule = [

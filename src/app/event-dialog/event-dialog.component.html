@@ -1,0 +1,47 @@
+<h2 mat-dialog-title>{{ data.event ? 'Edit Event' : 'Add Event' }}</h2>
+<mat-dialog-content>
+  <form [formGroup]="eventForm" class="event-form">
+    <mat-form-field appearance="fill" class="full-width">
+      <mat-label>Title</mat-label>
+      <input matInput formControlName="title" required>
+    </mat-form-field>
+
+    <mat-form-field appearance="fill" class="full-width">
+      <mat-label>Date</mat-label>
+      <input matInput [matDatepicker]="picker" formControlName="date">
+      <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+      <mat-datepicker #picker></mat-datepicker>
+    </mat-form-field>
+
+    <div class="time-inputs">
+      <mat-form-field appearance="fill">
+        <mat-label>Start Time</mat-label>
+        <mat-select formControlName="startTime">
+          @for (time of timeOptions; track time) {
+          <mat-option [value]="time">{{time}}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="fill">
+        <mat-label>End Time</mat-label>
+        <mat-select formControlName="endTime">
+          @for (time of timeOptions; track time) {
+          <mat-option [value]="time">{{time}}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <mat-form-field appearance="fill" class="full-width">
+      <mat-label>Color</mat-label>
+      <input matInput type="color" formControlName="color">
+    </mat-form-field>
+  </form>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()">Cancel</button>
+  <button mat-raised-button color="primary" [disabled]="!eventForm.valid" (click)="onSubmit()">
+    {{ data.event ? 'Update' : 'Add' }}
+  </button>
+</mat-dialog-actions>
