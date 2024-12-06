@@ -1,102 +1,130 @@
- .container {
-   padding: 16px;
-   max-width: 960px;
-   margin: 0 auto;
- }
+.container {
+  padding: 16px;
+  max-width: 960px;
+  margin: 0 auto;
+}
 
- mat-expansion-panel {
-   margin-bottom: 8px;
- }
+.navigation-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 8px;
+  border-radius: 8px;
+}
 
- mat-panel-title {
-   flex: 0 0 200px;
- }
+.student-nav {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  flex-grow: 1;
+  padding: 4px;
+}
 
- mat-panel-description {
-   color: rgba(255, 255, 255, 0.7);
- }
+.student-nav button {
+  flex-shrink: 0;
+  border-radius: 20px;
+  min-width: 100px;
+}
 
- .lessons-section {
-   margin-top: 16px;
- }
+.student-nav button.active {
+  background: rgba(255, 255, 255, 0.1);
+}
 
- .lessons-table {
-   width: 100%;
-   margin-bottom: 24px;
- }
+.student-card-container {
+  position: relative;
+}
 
- .no-lessons {
-   color: rgba(255, 255, 255, 0.5);
-   font-style: italic;
-   margin: 16px 0;
- }
+.student-card {
+  margin-bottom: 24px;
+}
 
- .lesson-form {
-   background: rgba(255, 255, 255, 0.05);
-   padding: 16px;
-   border-radius: 4px;
- }
+.card-navigation {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin: 16px 0;
+}
 
- .form-row {
-   display: flex;
-   gap: 16px;
-   margin-bottom: 16px;
- }
+.student-counter {
+  min-width: 60px;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.7);
+}
 
- .form-row mat-form-field {
-   flex: 1;
- }
+.lessons-section {
+  padding: 16px;
+}
 
- .add-student-fab {
-   position: fixed;
-   bottom: 24px;
-   right: 24px;
- }
+.lessons-table {
+  width: 100%;
+  margin-bottom: 24px;
+}
 
- .overlay {
-   position: fixed;
-   top: 0;
-   left: 0;
-   right: 0;
-   bottom: 0;
-   background: rgba(0, 0, 0, 0.5);
-   display: flex;
-   align-items: center;
-   justify-content: center;
-   z-index: 1000;
- }
+.no-lessons {
+  color: rgba(255, 255, 255, 0.5);
+  font-style: italic;
+  text-align: center;
+  padding: 24px;
+}
 
- .dialog-container {
-   background: #424242;
-   padding: 24px;
-   border-radius: 8px;
-   width: 90%;
-   max-width: 400px;
- }
+.lesson-form {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 16px;
+  border-radius: 4px;
+}
 
- .dialog-container h2 {
-   margin: 0 0 24px 0;
-   color: white;
- }
+.form-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+}
 
- .dialog-container form {
-   display: flex;
-   flex-direction: column;
-   gap: 16px;
- }
+.form-row mat-form-field {
+  flex: 1;
+}
 
- .form-actions {
-   display: flex;
-   justify-content: flex-end;
-   gap: 8px;
-   margin-top: 8px;
- }
+.notes-field {
+  width: 100%;
+}
 
- ::ng-deep .mat-expansion-panel-header {
-   height: 64px !important;
- }
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
 
- ::ng-deep .mat-expansion-panel-header-title,
- ::ng-deep .mat-expansion-panel-header-description {
-   align-items: center;
- }
+.dialog-container {
+  background: #424242;
+  padding: 24px;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 400px;
+}
+
+.dialog-container h2 {
+  margin: 0 0 24px 0;
+  color: white;
+}
+
+.dialog-container form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 8px;
+}

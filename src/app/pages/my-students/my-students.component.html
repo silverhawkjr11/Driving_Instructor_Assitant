@@ -1,74 +1,97 @@
 <div class="container">
-  <mat-accordion>
-    @for (student of students(); track student.id) {
-    <mat-expansion-panel>
-      <mat-expansion-panel-header>
-        <mat-panel-title>
-          {{ student.name }}
-        </mat-panel-title>
-        <mat-panel-description>
-          Last Lesson: {{ student.lastLesson | date:'mediumDate' }}
-        </mat-panel-description>
-      </mat-expansion-panel-header>
+  <!-- Student Navigation -->
+  <div class="navigation-header">
+    <div class="student-nav">
+      @for (student of students(); track student.id) {
+      <button mat-button [class.active]="currentStudentIndex() === $index" (click)="setCurrentStudent($index)">
+        {{ student.name }}
+      </button>
+      }
+    </div>
+    <button mat-mini-fab color="primary" (click)="showAddStudentForm()">
+      <mat-icon>add</mat-icon>
+    </button>
+  </div>
 
-      <div class="lessons-section">
-        @if (student.lessons.length > 0) {
-        <table mat-table [dataSource]="student.lessons" class="lessons-table">
-          <ng-container matColumnDef="date">
-            <th mat-header-cell *matHeaderCellDef>Date</th>
-            <td mat-cell *matCellDef="let lesson">{{ lesson.date | date:'shortDate' }}</td>
-          </ng-container>
+  <!-- Current Student Card -->
+  @if (currentStudent(); as student) {
+  <div class="student-card-container" [@cardAnimation]="currentStudentIndex()">
+    <mat-card class="student-card">
+      <mat-card-header>
+        <mat-card-title>{{ student.name }}</mat-card-title>
+        <mat-card-subtitle>
+          ID: {{ student.id }} • Last Lesson: {{ student.lastLesson | date:'mediumDate' }}
+        </mat-card-subtitle>
+      </mat-card-header>
 
-          <ng-container matColumnDef="duration">
-            <th mat-header-cell *matHeaderCellDef>Duration</th>
-            <td mat-cell *matCellDef="let lesson">{{ lesson.duration }} mins</td>
-          </ng-container>
-
-          <ng-container matColumnDef="notes">
-            <th mat-header-cell *matHeaderCellDef>Notes</th>
-            <td mat-cell *matCellDef="let lesson">{{ lesson.notes }}</td>
-          </ng-container>
-
-          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-        </table>
-        } @else {
-        <p class="no-lessons">No lessons recorded yet</p>
-        }
-
-        <form [formGroup]="lessonForm" (ngSubmit)="addLesson(student.id)" class="lesson-form">
-          <div class="form-row">
-            <mat-form-field appearance="outline">
-              <mat-label>Date</mat-label>
-              <input matInput [matDatepicker]="picker" formControlName="date">
-              <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
-              <mat-datepicker #picker></mat-datepicker>
-            </mat-form-field>
-
-            <mat-form-field appearance="outline">
-              <mat-label>Duration (minutes)</mat-label>
-              <input matInput type="number" formControlName="duration">
-            </mat-form-field>
-          </div>
-
-          <mat-form-field appearance="outline">
-            <mat-label>Notes</mat-label>
-            <textarea matInput formControlName="notes"></textarea>
-          </mat-form-field>
-
-          <button mat-raised-button color="primary" type="submit" [disabled]="!lessonForm.valid">
-            Add Lesson
+      <mat-card-content>
+        <div class="card-navigation">
+          <button mat-icon-button [disabled]="currentStudentIndex() === 0" (click)="previousStudent()">
+            <mat-icon>chevron_left</mat-icon>
           </button>
-        </form>
-      </div>
-    </mat-expansion-panel>
-    }
-  </mat-accordion>
+          <span class="student-counter">{{ currentStudentIndex() + 1 }} / {{ students().length }}</span>
+          <button mat-icon-button [disabled]="currentStudentIndex() === students().length - 1" (click)="nextStudent()">
+            <mat-icon>chevron_right</mat-icon>
+          </button>
+        </div>
 
-  <button mat-fab color="primary" (click)="showAddStudentForm()" class="add-student-fab">
-    <mat-icon>add</mat-icon>
-  </button>
+        <div class="lessons-section">
+          <h3>Lessons</h3>
+          @if (student.lessons.length > 0) {
+          <table mat-table [dataSource]="student.lessons" class="lessons-table">
+            <ng-container matColumnDef="date">
+              <th mat-header-cell *matHeaderCellDef>Date</th>
+              <td mat-cell *matCellDef="let lesson">{{ lesson.date | date:'shortDate' }}</td>
+            </ng-container>
 
+            <ng-container matColumnDef="duration">
+              <th mat-header-cell *matHeaderCellDef>Duration</th>
+              <td mat-cell *matCellDef="let lesson">{{ lesson.duration }} mins</td>
+            </ng-container>
+
+            <ng-container matColumnDef="notes">
+              <th mat-header-cell *matHeaderCellDef>Notes</th>
+              <td mat-cell *matCellDef="let lesson">{{ lesson.notes }}</td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+          </table>
+          } @else {
+          <p class="no-lessons">No lessons recorded yet</p>
+          }
+
+          <form [formGroup]="lessonForm" (ngSubmit)="addLesson(student.id)" class="lesson-form">
+            <div class="form-row">
+              <mat-form-field appearance="outline">
+                <mat-label>Date</mat-label>
+                <input matInput [matDatepicker]="picker" formControlName="date">
+                <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+                <mat-datepicker #picker></mat-datepicker>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Duration (minutes)</mat-label>
+                <input matInput type="number" formControlName="duration">
+              </mat-form-field>
+            </div>
+
+            <mat-form-field appearance="outline" class="notes-field">
+              <mat-label>Notes</mat-label>
+              <textarea matInput formControlName="notes" rows="2"></textarea>
+            </mat-form-field>
+
+            <button mat-raised-button color="primary" type="submit" [disabled]="!lessonForm.valid">
+              Add Lesson
+            </button>
+          </form>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+  }
+
+  <!-- Add Student Dialog -->
   @if (showForm()) {
   <div class="overlay" (click)="hideAddStudentForm()">
     <div class="dialog-container" (click)="$event.stopPropagation()">

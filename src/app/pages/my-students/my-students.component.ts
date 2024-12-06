@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { MatTableModule } from '@angular/material/table';
 import { CommonModule } from '@angular/common';
 import { StudentService } from '../../services/student.service';
@@ -14,6 +14,7 @@ import { MatExpansionModule } from '@angular/material/expansion';
 
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatIcon } from '@angular/material/icon';
+import { animate, style, transition, trigger } from '@angular/animations';
 @Component({
   standalone: true,
   selector: 'app-my-students',
@@ -33,13 +34,31 @@ import { MatIcon } from '@angular/material/icon';
     MatExpansionModule,
     MatIcon
   ],
+  animations: [
+    trigger('cardAnimation', [
+      transition(':increment', [
+        style({ transform: 'translateX(100%)', opacity: 0 }),
+        animate('200ms ease-out', style({ transform: 'translateX(0)', opacity: 1 }))
+      ]),
+      transition(':decrement', [
+        style({ transform: 'translateX(-100%)', opacity: 0 }),
+        animate('200ms ease-out', style({ transform: 'translateX(0)', opacity: 1 }))
+      ])
+    ])
+  ]
 })
 export class MyStudentsComponent {
   private studentService = inject(StudentService);
 
   students = this.studentService.getStudents();
+  currentStudentIndex = signal(0);
   showForm = signal(false);
   displayedColumns = ['date', 'duration', 'notes'];
+
+  currentStudent = computed(() => {
+    const students = this.students();
+    return students[this.currentStudentIndex()];
+  });
 
   studentForm = new FormGroup({
     name: new FormControl('', Validators.required),
@@ -51,6 +70,22 @@ export class MyStudentsComponent {
     duration: new FormControl(null, [Validators.required, Validators.min(1)]),
     notes: new FormControl(''),
   });
+
+  setCurrentStudent(index: number) {
+    this.currentStudentIndex.set(index);
+  }
+
+  nextStudent() {
+    if (this.currentStudentIndex() < this.students().length - 1) {
+      this.currentStudentIndex.update(i => i + 1);
+    }
+  }
+
+  previousStudent() {
+    if (this.currentStudentIndex() > 0) {
+      this.currentStudentIndex.update(i => i - 1);
+    }
+  }
 
   showAddStudentForm() {
     this.showForm.set(true);
