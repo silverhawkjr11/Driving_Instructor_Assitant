@@ -15,8 +15,8 @@
 
   <!-- Current Student Card -->
   @if (currentStudent(); as student) {
-  <div class="student-card-container" [@cardAnimation]="currentStudentIndex()">
-    <mat-card class="student-card">
+  <div class="student-card-container" [@cardAnimation]="currentStudentIndex()" (touchstart)="onTouchStart($event)"
+    (touchmove)="onTouchMove($event)" (touchend)="onTouchEnd($event)" #cardContainer> <mat-card class="student-card">
       <mat-card-header>
         <mat-card-title>{{ student.name }}</mat-card-title>
         <mat-card-subtitle>
