@@ -65,7 +65,8 @@ export class MyStudentsComponent {
   private studentService = inject(StudentService);
   private isBrowser: boolean;
   private panStartX = 0;
-
+  private startX = 0;
+  private isDragging = false;
   private touchStartX = 0;
   private readonly SWIPE_THRESHOLD = 50; // minimum distance for swipe
   students = this.studentService.getStudents();
@@ -76,34 +77,47 @@ export class MyStudentsComponent {
     this.isBrowser = isPlatformBrowser(platformId);
   }
   onTouchStart(event: TouchEvent) {
-    this.touchStartX = event.touches[0].clientX;
+    this.startX = event.touches[0].clientX;
+    this.isDragging = true;
+
+    // Get the card element
+    const card = this.cardContainer.nativeElement;
+    // Remove transition while dragging
+    card.style.transition = 'none';
   }
 
   onTouchMove(event: TouchEvent) {
-    if (this.cardContainer) {
-      const deltaX = event.touches[0].clientX - this.touchStartX;
-      const element = this.cardContainer.nativeElement;
-      element.style.transform = `translateX(${deltaX}px)`;
-    }
+    if (!this.isDragging) return;
+
+    const currentX = event.touches[0].clientX;
+    const diffX = currentX - this.startX;
+
+    // Get the card element
+    const card = this.cardContainer.nativeElement;
+    card.style.transform = `translateX(${diffX}px)`;
   }
 
   onTouchEnd(event: TouchEvent) {
-    if (this.cardContainer) {
-      const element = this.cardContainer.nativeElement;
-      const deltaX = event.changedTouches[0].clientX - this.touchStartX;
+    if (!this.isDragging) return;
 
-      // Reset transform
-      element.style.transform = '';
+    this.isDragging = false;
+    const card = this.cardContainer.nativeElement;
 
-      // Determine if swipe was significant enough
-      if (Math.abs(deltaX) > this.SWIPE_THRESHOLD) {
-        if (deltaX > 0) {
-          this.previousStudent();
-        } else {
-          this.nextStudent();
-        }
+    // Restore the transition
+    card.style.transition = 'transform 0.3s ease-out';
+
+    const endX = event.changedTouches[0].clientX;
+    const diffX = endX - this.startX;
+
+    // If swipe distance is greater than 100px, navigate
+    if (Math.abs(diffX) > 100) {
+      if (diffX > 0 && this.currentStudentIndex() > 0) {
+        this.previousStudent();
+      } else if (diffX < 0 && this.currentStudentIndex() < this.students().length - 1) {
+        this.nextStudent();
       }
     }
+    card.style.transform = 'translateX(0)';
   }
   // ngAfterViewInit(): void {
   //   if (this.isBrowser && this.cardContainer) {

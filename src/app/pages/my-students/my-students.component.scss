@@ -1,7 +1,13 @@
+/* styles.scss or my-students.component.scss */
 .container {
   padding: 16px;
   max-width: 960px;
   margin: 0 auto;
+  overflow-x: hidden;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .navigation-header {
@@ -32,23 +38,23 @@
   background: rgba(255, 255, 255, 0.1);
 }
 
+.student-card-container:active {
+  cursor: grabbing;
+}
+
 .student-card-container {
   position: relative;
   touch-action: pan-y pinch-zoom;
   user-select: none;
-}
-
-/* Add visual feedback for touch interaction */
-.student-card {
-  transition: transform 0.2s ease;
-}
-
-.student-card:active {
-  transform: scale(0.98);
+  width: 100%;
+  will-change: transform;
+  cursor: grab;
 }
 
 .student-card {
-  margin-bottom: 24px;
+  transition: transform 0.3s ease-out;
+  will-change: transform;
+  transform-origin: center;
 }
 
 .card-navigation {
@@ -62,29 +68,7 @@
 .student-counter {
   min-width: 60px;
   text-align: center;
-  color: rgba(255, 255, 255, 0.7);
-}
-
-.lessons-section {
-  padding: 16px;
-}
-
-.lessons-table {
-  width: 100%;
-  margin-bottom: 24px;
-}
-
-.no-lessons {
-  color: rgba(255, 255, 255, 0.5);
-  font-style: italic;
-  text-align: center;
-  padding: 24px;
-}
-
-.lesson-form {
-  background: rgba(255, 255, 255, 0.05);
-  padding: 16px;
-  border-radius: 4px;
+  opacity: 0.7;
 }
 
 .form-row {
@@ -99,6 +83,22 @@
 
 .notes-field {
   width: 100%;
+}
+
+.lessons-section {
+  padding: 16px;
+}
+
+.lessons-table {
+  width: 100%;
+  margin-bottom: 24px;
+}
+
+.lesson-form {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 16px;
+  border-radius: 4px;
+  margin-top: 24px;
 }
 
 .overlay {
@@ -127,54 +127,16 @@
   color: white;
 }
 
-.dialog-container form {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
 .form-actions {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
-  margin-top: 8px;
+  margin-top: 16px;
 }
 
-
-
-.student-card {
-  transform-origin: center center;
-  transition: transform 0.3s ease;
-}
-
-::ng-deep .mat-mdc-card {
-  overflow: hidden;
-}
-
-.student-card-container {
-  position: relative;
-  touch-action: pan-y pinch-zoom;
-  user-select: none;
-  transition: transform 0.3s ease;
-}
-
-.student-card {
-  transform-origin: center center;
-  transition: transform 0.3s ease;
-}
-
-.mat-mdc-card {
-  overflow: hidden;
-}
-
-/* Add these styles to prevent unwanted scroll/selection during swipe */
-.container {
-  overflow-x: hidden;
-  -webkit-touch-callout: none;
-  -webkit-user-select: none;
-  -khtml-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
-  -webkit-tap-highlight-color: transparent;
+.no-lessons {
+  text-align: center;
+  opacity: 0.7;
+  font-style: italic;
+  padding: 24px;
 }
