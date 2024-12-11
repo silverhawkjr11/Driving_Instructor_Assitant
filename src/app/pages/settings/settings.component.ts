@@ -1,30 +1,57 @@
-import { Component } from '@angular/core';
-import { MatFormField } from '@angular/material/form-field';
-import { MatOption, MatSelect } from '@angular/material/select';
-import { MatLabel } from '@angular/material/form-field';
+// settings.component.ts
+import { Component, OnInit } from '@angular/core';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
 import { CommonModule } from '@angular/common';
+import { ThemeService } from '../../services/theme.service';
+
 @Component({
   standalone: true,
   selector: 'app-settings',
-  templateUrl: './settings.component.html',
-  styleUrls: ['./settings.component.scss'],
-  imports: [
-    MatFormField,
-    MatLabel,
-    MatSelect,
-    MatOption,
-    CommonModule
-  ],
-})
-export class SettingsComponent {
-  themes = [
-    { name: 'Indigo & Pink', value: 'node_modules/@angular/material/prebuilt-themes/indigo-pink.css' },
-    { name: 'Pink & Blue Grey', value: 'node_modules/@angular/material/prebuilt-themes/pink-bluegrey.css' },
-    { name: 'Purple & Green', value: 'node_modules/@angular/material/prebuilt-themes/purple-green.css' },
-  ];
+  template: `
+    <div class="settings-container">
 
-  setTheme(theme: string) {
-    const link = document.getElementById('app-theme') as HTMLLinkElement;
-    link.href = theme;
+      <mat-form-field appearance="fill">
+
+        <mat-select
+          [value]="currentTheme"
+          (selectionChange)="onThemeChange($event.value)">
+          <mat-option
+            *ngFor="let theme of themeService.themes"
+            [value]="theme.value">
+            {{ theme.name }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+  `,
+  styles: [`
+    .settings-container {
+      padding: 20px;
+    }
+    mat-form-field {
+      width: 100%;
+      max-width: 400px;
+    }
+  `],
+  imports: [
+    MatFormFieldModule,
+    MatSelectModule,
+    CommonModule
+  ]
+})
+export class SettingsComponent implements OnInit {
+  currentTheme: string | undefined;
+
+  constructor(public themeService: ThemeService) { }
+
+  ngOnInit() {
+    this.themeService.getCurrentTheme().subscribe(theme => {
+      this.currentTheme = theme;
+    });
+  }
+
+  onThemeChange(themeUrl: string) {
+    this.themeService.setTheme(themeUrl);
   }
 }
