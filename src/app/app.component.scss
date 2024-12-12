@@ -3,3 +3,21 @@ mat-sidenav-container {
   background: black;
   /* Adjust as needed */
 }
+
+.example-container {
+  height: 100vh;
+  /* Make it take the full viewport height */
+  overflow: hidden;
+  /* Avoid overflow issues */
+}
+
+mat-drawer {
+  width: 250px;
+  /* Adjust the drawer width */
+}
+
+mat-drawer-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}

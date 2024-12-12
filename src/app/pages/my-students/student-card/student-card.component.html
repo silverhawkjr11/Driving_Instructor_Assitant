@@ -1,1 +1,24 @@
-<p>student-card works!</p>
+<div class="student-card-container" (touchstart)="onTouchStart.emit($event)" (touchmove)="onTouchMove.emit($event)"
+  (touchend)="onTouchEnd.emit($event)">
+  <mat-card class="student-card">
+    <mat-card-header>
+      <mat-card-title>{{ student.name }}</mat-card-title>
+      <mat-card-subtitle>
+        ID: {{ student.id }} • Last Lesson: {{ student.lastLesson | date:'mediumDate' }}
+      </mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      <div class="card-navigation">
+        <button mat-icon-button [disabled]="isFirst" (click)="previousStudent.emit()">
+          <mat-icon>chevron_left</mat-icon>
+        </button>
+        <span class="student-counter">{{ currentIndex + 1 }} / {{ totalStudents }}</span>
+        <button mat-icon-button [disabled]="isLast" (click)="nextStudent.emit()">
+          <mat-icon>chevron_right</mat-icon>
+        </button>
+      </div>
+      <ng-content></ng-content>
+    </mat-card-content>
+  </mat-card>
+</div>

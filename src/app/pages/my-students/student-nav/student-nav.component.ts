@@ -8,22 +8,7 @@ import { Student } from '../../../services/student.service';
   selector: 'app-student-nav',
   standalone: true,
   imports: [CommonModule, MatButtonModule, MatIconModule],
-  template: `
-    <div class="navigation-header">
-      <div class="student-nav">
-        @for (student of students; track student.id) {
-          <button mat-button
-                  [class.active]="currentIndex === i"
-                  (click)="studentSelected.emit(i)">
-            {{ student.name }}
-          </button>
-        }
-      </div>
-      <button mat-mini-fab color="primary" (click)="addStudent.emit()">
-        <mat-icon>add</mat-icon>
-      </button>
-    </div>
-  `
+  templateUrl: './student-nav.component.html',
 })
 export class StudentNavComponent {
   private i!: number;

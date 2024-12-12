@@ -1,11 +1,11 @@
-<mat-sidenav-container class="example-container">
-  <mat-sidenav #drawer mode="side" opened>
+<mat-drawer-container class="example-container" autosize>
+  <mat-drawer #drawer mode="side" [opened]="true" (swipeleft)="drawer.close()" (swiperight)="drawer.open()">
     <p><a mat-button routerLink="/my-students" routerLinkActive="active">My Students</a></p>
     <p><a mat-button routerLink="/schedule" routerLinkActive="active">Schedule</a></p>
     <p><a mat-button routerLink="/settings" routerLinkActive="active">Settings</a></p>
-  </mat-sidenav>
+  </mat-drawer>
 
-  <mat-sidenav-content>
+  <mat-drawer-content>
     <mat-toolbar color="primary">
       <button mat-icon-button (click)="drawer.toggle()">
         <mat-icon>menu</mat-icon>
@@ -14,12 +14,5 @@
     </mat-toolbar>
 
     <router-outlet></router-outlet>
-  </mat-sidenav-content>
-</mat-sidenav-container>
-
-<!-- <mat-form-field> -->
-<!--   <mat-label>Theme</mat-label> -->
-<!--   <mat-select (selectionChange)="setTheme($event.value)"> -->
-<!--     <mat-option *ngFor="let theme of themes" [value]="theme.value">{{ theme.name }}</mat-option> -->
-<!--   </mat-select> -->
-<!-- </mat-form-field> -->
+  </mat-drawer-content>
+</mat-drawer-container>

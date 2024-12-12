@@ -21,6 +21,7 @@ import { HAMMER_GESTURE_CONFIG, HammerGestureConfig, HammerModule } from '@angul
   standalone: true,
   selector: 'app-my-students',
   templateUrl: './my-students.component.html',
+  styleUrls: ['./my-students.component.scss'],
   imports: [
     MatTableModule,
     CommonModule,
@@ -60,6 +61,7 @@ import { HAMMER_GESTURE_CONFIG, HammerGestureConfig, HammerModule } from '@angul
     }
   ]
 })
+// TODO: remove unused vars
 export class MyStudentsComponent {
   @ViewChild('cardContainer') cardContainer!: ElementRef;
   private studentService = inject(StudentService);
