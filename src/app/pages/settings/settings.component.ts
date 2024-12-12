@@ -8,23 +8,7 @@ import { ThemeService } from '../../services/theme.service';
 @Component({
   standalone: true,
   selector: 'app-settings',
-  template: `
-    <div class="settings-container">
-
-      <mat-form-field appearance="fill">
-
-        <mat-select
-          [value]="currentTheme"
-          (selectionChange)="onThemeChange($event.value)">
-          <mat-option
-            *ngFor="let theme of themeService.themes"
-            [value]="theme.value">
-            {{ theme.name }}
-          </mat-option>
-        </mat-select>
-      </mat-form-field>
-    </div>
-  `,
+  templateUrl: './settings.component.html',
   styles: [`
     .settings-container {
       padding: 20px;
