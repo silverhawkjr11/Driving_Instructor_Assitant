@@ -3,6 +3,10 @@ import { AuthService } from '../core/auth.service'
 import { Router, Params } from '@angular/router';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { BrowserModule } from '@angular/platform-browser';
+import { MatCard, MatCardModule } from '@angular/material/card';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatButtonModule } from '@angular/material/button';
+import { MatInputModule } from '@angular/material/input';
 
 @Component({
   selector: 'page-login',
@@ -10,6 +14,10 @@ import { BrowserModule } from '@angular/platform-browser';
   standalone: true,
   imports: [
     ReactiveFormsModule,
+    MatCardModule,
+    MatFormFieldModule,
+    MatButtonModule,
+    MatInputModule
   ]
 })
 export class LoginComponent {
@@ -42,14 +50,14 @@ export class LoginComponent {
   tryGoogleLogin() {
     this.authService.doGoogleLogin()
       .then(res => {
-        this.router.navigate(['/user']);
+        this.router.navigate(['/my-students']);
       })
   }
 
   tryLogin(value: { email: any; password: any; }) {
     this.authService.doLogin(value)
       .then(res => {
-        this.router.navigate(['/user']);
+        this.router.navigate(['/my-students']);
       }, err => {
         console.log(err);
         this.errorMessage = err.message;

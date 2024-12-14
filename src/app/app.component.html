@@ -1,19 +1,23 @@
-<app-header></app-header>
-<mat-drawer-container class="example-container" autosize>
-  <mat-drawer #drawer mode="side" [opened]="true" (swipeleft)="drawer.close()" (swiperight)="drawer.open()">
-    <p><a mat-button routerLink="/my-students" routerLinkActive="active">My Students</a></p>
-    <p><a mat-button routerLink="/schedule" routerLinkActive="active">Schedule</a></p>
-    <p><a mat-button routerLink="/settings" routerLinkActive="active">Settings</a></p>
-  </mat-drawer>
+<ng-container *ngIf="authService.isLoggedIn$ | async; else loginTemplate">
+  <app-header></app-header>
+  <mat-drawer-container class="example-container" autosize>
+    <mat-drawer #drawer mode="side" [opened]="true" (swipeleft)="drawer.close()" (swiperight)="drawer.open()">
+      <p><a mat-button routerLink="/my-students" routerLinkActive="active">My Students</a></p>
+      <p><a mat-button routerLink="/schedule" routerLinkActive="active">Schedule</a></p>
+      <p><a mat-button routerLink="/settings" routerLinkActive="active">Settings</a></p>
+    </mat-drawer>
+    <mat-drawer-content>
+      <mat-toolbar color="primary">
+        <button mat-icon-button (click)="drawer.toggle()">
+          <mat-icon>menu</mat-icon>
+        </button>
+        <span>Driving Instructor Assistant</span>
+      </mat-toolbar>
+      <router-outlet></router-outlet>
+    </mat-drawer-content>
+  </mat-drawer-container>
+</ng-container>
 
-  <mat-drawer-content>
-    <mat-toolbar color="primary">
-      <button mat-icon-button (click)="drawer.toggle()">
-        <mat-icon>menu</mat-icon>
-      </button>
-      <span>Driving Instructor Assistant</span>
-    </mat-toolbar>
-
-    <router-outlet></router-outlet>
-  </mat-drawer-content>
-</mat-drawer-container>
+<ng-template #loginTemplate>
+  <router-outlet></router-outlet>
+</ng-template>

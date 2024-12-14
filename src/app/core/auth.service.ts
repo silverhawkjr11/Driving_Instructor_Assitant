@@ -3,33 +3,35 @@ import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { createUserWithEmailAndPassword, GoogleAuthProvider } from "firebase/auth";
 import { Auth } from "firebase/auth";
 import { ResolveData } from "@angular/router";
+import { Observable } from "rxjs";
 @Injectable(
   {
     providedIn: 'root'
   }
 )
 export class AuthService {
-
+  isLoggedIn$ = new Observable<boolean>(observer => {
+    return this.afAuth.authState.subscribe(user => {
+      observer.next(!!user);
+    });
+  });
   constructor(
     public afAuth: AngularFireAuth
   ) { }
 
   doGoogleLogin() {
     return new Promise<any>((resolve, reject) => {
-      let provider = new GoogleAuthProvider();
-      provider.addScope('profile');
-      provider.addScope('email');
-      this.afAuth
-        .signInWithPopup(provider)
+      const provider = new GoogleAuthProvider();
+      this.afAuth.signInWithRedirect(provider)
         .then(res => {
           resolve(res);
-        }, err => {
-          console.log(err);
-          reject(err);
         })
-    })
+        .catch(error => {
+          console.error('Auth Error:', error);
+          reject(error);
+        });
+    });
   }
-
   doRegister(value: { email: any; password: any; }) {
     return new Promise<any>((resolve, reject) => {
       this.afAuth.createUserWithEmailAndPassword(value.email, value.password).then(

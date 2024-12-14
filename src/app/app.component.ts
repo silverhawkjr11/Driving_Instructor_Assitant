@@ -6,6 +6,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { RouterModule } from '@angular/router';
 import { HeaderComponent } from './header/header.component';
 import { ReactiveFormsModule } from '@angular/forms';
+import { AuthService } from './core/auth.service';
+import { CommonModule } from '@angular/common';
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
@@ -19,8 +21,11 @@ import { ReactiveFormsModule } from '@angular/forms';
     RouterModule,
     HeaderComponent,
     ReactiveFormsModule,
+    CommonModule
   ]
 })
 export class AppComponent {
   title = 'frontend';
+
+  constructor(public authService: AuthService) { }
 }
