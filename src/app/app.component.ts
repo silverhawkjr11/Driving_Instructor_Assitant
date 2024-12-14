@@ -4,7 +4,8 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { RouterModule } from '@angular/router';
-
+import { HeaderComponent } from './header/header.component';
+import { ReactiveFormsModule } from '@angular/forms';
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
@@ -15,7 +16,9 @@ import { RouterModule } from '@angular/router';
     MatToolbarModule,
     MatButtonModule,
     MatIconModule,
-    RouterModule
+    RouterModule,
+    HeaderComponent,
+    ReactiveFormsModule,
   ]
 })
 export class AppComponent {
