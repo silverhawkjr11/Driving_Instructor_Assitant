@@ -121,27 +121,6 @@ export class MyStudentsComponent {
     }
     card.style.transform = 'translateX(0)';
   }
-  // ngAfterViewInit(): void {
-  //   if (this.isBrowser && this.cardContainer) {
-  //     const hammer = new Hammer(this.cardContainer.nativeElement);
-  //
-  //     hammer.on('swipeleft', () => {
-  //       this.nextStudent();
-  //     });
-  //
-  //     hammer.on('swiperight', () => {
-  //       this.previousStudent();
-  //     });
-  //   }
-  // }
-  // ngOnInit(): void {
-  //   if (this.isBrowser) {
-  //     import('hammerjs').then(() => {
-  //       // HammerJS is now loaded
-  //       console.log('HammerJS loaded');
-  //     });
-  //   }
-  // }
   currentStudent = computed(() => {
     const students = this.students();
     return students[this.currentStudentIndex()];
@@ -210,35 +189,4 @@ export class MyStudentsComponent {
       this.lessonForm.reset();
     }
   }
-  // onPanStart(event: any) {
-  //   this.panStartX = event.center.x;
-  // }
-  //
-  // onPanMove(event: any) {
-  //   // Optional: Add visual feedback during pan
-  //   if (this.cardContainer) {
-  //     const element = this.cardContainer.nativeElement;
-  //     const deltaX = event.center.x - this.panStartX;
-  //     element.style.transform = `translateX(${deltaX}px)`;
-  //   }
-  // }
-  //
-  // onPanEnd(event: any) {
-  //   if (this.cardContainer) {
-  //     const element = this.cardContainer.nativeElement;
-  //     const deltaX = event.center.x - this.panStartX;
-  //
-  //     // Reset transform
-  //     element.style.transform = '';
-  //
-  //     // Determine if swipe was significant enough
-  //     if (Math.abs(deltaX) > this.SWIPE_THRESHOLD) {
-  //       if (deltaX > 0) {
-  //         this.previousStudent();
-  //       } else {
-  //         this.nextStudent();
-  //       }
-  //     }
-  //   }
-  // }
 }
