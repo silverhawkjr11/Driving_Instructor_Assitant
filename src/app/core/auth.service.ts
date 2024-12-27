@@ -1,28 +1,24 @@
 import { inject, Injectable } from "@angular/core";
 import { AngularFireAuth } from '@angular/fire/compat/auth';
-import { createUserWithEmailAndPassword, GoogleAuthProvider } from "firebase/auth";
-import { Auth } from "firebase/auth";
-import { ResolveData } from "@angular/router";
+import { GoogleAuthProvider } from "firebase/auth";
 import { Observable } from "rxjs";
-@Injectable(
-  {
-    providedIn: 'root'
-  }
-)
+
+@Injectable({
+  providedIn: 'root'
+})
 export class AuthService {
   isLoggedIn$ = new Observable<boolean>(observer => {
     return this.afAuth.authState.subscribe(user => {
       observer.next(!!user);
     });
   });
-  constructor(
-    public afAuth: AngularFireAuth
-  ) { }
+
+  constructor(public afAuth: AngularFireAuth) { }
 
   doGoogleLogin() {
     return new Promise<any>((resolve, reject) => {
       const provider = new GoogleAuthProvider();
-      this.afAuth.signInWithRedirect(provider)
+      this.afAuth.signInWithPopup(provider)
         .then(res => {
           resolve(res);
         })
@@ -32,6 +28,7 @@ export class AuthService {
         });
     });
   }
+
   doRegister(value: { email: any; password: any; }) {
     return new Promise<any>((resolve, reject) => {
       this.afAuth.createUserWithEmailAndPassword(value.email, value.password).then(
@@ -51,12 +48,10 @@ export class AuthService {
       )
     })
   }
-  // TODO: ResolveData
+
   doLogout() {
     return new Promise((resolve, reject) => {
       this.afAuth.signOut()
     })
   }
-
-
 }

@@ -48,10 +48,12 @@ export class LoginComponent {
 
 
   tryGoogleLogin() {
+    console.log('try google login');
     this.authService.doGoogleLogin()
       .then(res => {
         this.router.navigate(['/my-students']);
       })
+      .catch(err => console.log(err));
   }
 
   tryLogin(value: { email: any; password: any; }) {
