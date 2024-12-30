@@ -17,6 +17,7 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { MatIcon } from '@angular/material/icon';
 import { animate, style, transition, trigger } from '@angular/animations';
 import { HAMMER_GESTURE_CONFIG, HammerGestureConfig, HammerModule } from '@angular/platform-browser';
+import { Student } from '../../../models/student.model';
 @Component({
   standalone: true,
   selector: 'app-my-students',
@@ -63,6 +64,9 @@ import { HAMMER_GESTURE_CONFIG, HammerGestureConfig, HammerModule } from '@angul
 })
 // TODO: remove unused vars
 export class MyStudentsComponent {
+Number(arg0: string): number {
+  return Number(arg0);
+}
   @ViewChild('cardContainer') cardContainer!: ElementRef;
   private studentService = inject(StudentService);
   private isBrowser: boolean;
@@ -128,7 +132,6 @@ export class MyStudentsComponent {
 
   studentForm = new FormGroup({
     name: new FormControl('', Validators.required),
-    lastLesson: new FormControl(null, Validators.required),
   });
 
   lessonForm = new FormGroup({
@@ -162,19 +165,28 @@ export class MyStudentsComponent {
     this.studentForm.reset();
   }
 
-  addStudent() {
+  async addStudent() {
     if (this.studentForm.valid) {
       const formValue = this.studentForm.value;
-      const newStudent = {
-        id: Date.now(),
+      const newStudent: Omit<Student, "lessons"> = {
+        id: Date.now().toString(),
         name: formValue.name!,
-        lastLesson: formValue.lastLesson!,
+        phone: '',
+        instructorId: '',
+        startDate: new Date(),
+        status: 'active',
+        lessonsCompleted: 0,
+        lastLesson: undefined
       };
 
-      this.studentService.addStudent(newStudent);
+      try {
+      await this.studentService.addStudent(newStudent);
       this.hideAddStudentForm();
+      } catch (error) {
+      console.error('Error adding student:', error);
+      }
     }
-  }
+    }
 
   addLesson(studentId: number) {
     if (this.lessonForm.valid) {

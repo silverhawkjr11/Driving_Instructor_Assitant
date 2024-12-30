@@ -12,6 +12,7 @@ export class AuthService {
       observer.next(!!user);
     });
   });
+  user$: any;
 
   constructor(public afAuth: AngularFireAuth) { }
 

@@ -3,9 +3,11 @@
   <div class="navigation-header">
     <div class="student-nav">
       @for (student of students(); track student.id) {
-      <button mat-button [class.active]="currentStudentIndex() === $index" (click)="setCurrentStudent($index)">
-        {{ student.name }}
-      </button>
+        <button mat-button 
+                [class.active]="currentStudentIndex() === $index" 
+                (click)="setCurrentStudent($index)">
+          {{ student.name }}
+        </button>
       }
     </div>
     <button mat-mini-fab color="primary" (click)="showAddStudentForm()">
@@ -20,7 +22,10 @@
       <mat-card-header>
         <mat-card-title>{{ student.name }}</mat-card-title>
         <mat-card-subtitle>
-          ID: {{ student.id }} • Last Lesson: {{ student.lastLesson | date:'mediumDate' }}
+          Phone: {{ student.phone }} • Started: {{ student.startDate | date:'mediumDate' }}
+          @if (student.lastLesson) {
+            • Last Lesson: {{ student.lastLesson | date:'mediumDate' }}
+          }
         </mat-card-subtitle>
       </mat-card-header>
 
@@ -61,7 +66,7 @@
           <p class="no-lessons">No lessons recorded yet</p>
           }
 
-          <form [formGroup]="lessonForm" (ngSubmit)="addLesson(student.id)" class="lesson-form">
+          <form [formGroup]="lessonForm" (ngSubmit)="addLesson(Number(student.id!))" class="lesson-form">
             <div class="form-row">
               <mat-form-field appearance="outline">
                 <mat-label>Date</mat-label>

@@ -10,6 +10,9 @@ import { AngularFireModule } from '@angular/fire/compat';
 import { AngularFireAuthModule } from '@angular/fire/compat/auth';
 import { environment } from '../environments/environment';
 import { AuthService } from './core/auth.service';
+import { Firestore, getFirestore, provideFirestore } from '@angular/fire/firestore';
+import { AngularFirestoreModule } from '@angular/fire/compat/firestore';
+import { get } from 'http';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -18,11 +21,13 @@ export const appConfig: ApplicationConfig = {
     provideAnimationsAsync(),
     provideHttpClient(),
     provideNativeDateAdapter(),
+    provideFirestore(() => getFirestore()),
     importProvidersFrom(
       AngularFireModule.initializeApp(environment.firebaseConfig),
-      AngularFireAuthModule
+      AngularFireAuthModule,
+      AngularFirestoreModule
     ),
     { provide: MAT_DATE_LOCALE, useValue: 'en-US' },
-    AuthService  // Add this
+    AuthService,  // Add this
   ]
 };
