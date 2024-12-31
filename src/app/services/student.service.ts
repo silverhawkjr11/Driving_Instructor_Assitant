@@ -13,9 +13,11 @@ import {
   increment
 } from '@angular/fire/firestore';
 import { Auth } from '@angular/fire/auth';
-import { Observable } from 'rxjs';
+import { map, Observable } from 'rxjs';
 import { Student } from '../../models/student.model';
 import { Lesson } from '../../models/lesson.model';
+import { onAuthStateChanged } from '@angular/fire/auth';
+import { switchMap } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -26,18 +28,44 @@ export class StudentService {
   private studentsCollection = collection(this.firestore, 'students');
 
   getStudents(): Observable<Student[]> {
-    const user = this.auth.currentUser;
-    if (!user) return new Observable<Student[]>();
-
-    const q = query(
-      this.studentsCollection,
-      where('instructorId', '==', user.uid),
-      orderBy('createdAt', 'desc')
-    );
-    
-    return collectionData(q, { idField: 'id' }) as Observable<Student[]>;
+    return new Observable<Student[]>((subscriber) => {
+      onAuthStateChanged(this.auth, (user) => {
+        if (user) {
+          const q = query(
+            this.studentsCollection,
+            where('instructorId', '==', user.uid),
+            orderBy('createdAt', 'desc')
+          );
+  
+          collectionData(q, { idField: 'id' })
+            .pipe(
+              // Map the data to the Student type
+              map((data) =>
+                data.map((doc) => ({
+                  id: doc['id'],
+                  name: doc['name'] || '',
+                  phone: doc['phone'] || '',
+                  startDate: doc['startDate'] || new Date(),
+                  status: doc['status'] || 'active',
+                  lessonsCompleted: doc['lessonsCompleted'] || 0,
+                  lastLesson: doc['lastLesson'] || null,
+                  lessons: doc['lessons'] || [],
+                  instructorId: doc['instructorId'],
+                  createdAt: doc['createdAt'] || new Date(),
+                })) as unknown as Student[]
+              )
+            )
+            .subscribe({
+              next: (data) => subscriber.next(data),
+              error: (error) => subscriber.error(error),
+            });
+        } else {
+          subscriber.next([]);
+        }
+      });
+    });
   }
-
+    
   async addStudent(studentData: Partial<Student>): Promise<void> {
     const user = this.auth.currentUser;
     if (!user) throw new Error('No authenticated user');

@@ -22,6 +22,7 @@ import { HAMMER_GESTURE_CONFIG, HammerGestureConfig, HammerModule } from '@angul
 import { Student } from '../../../models/student.model';
 import { Lesson } from '../../../models/lesson.model';
 import { Auth } from '@angular/fire/auth';
+import { TimestampToDatePipe } from '../../pipes/timestamp-to-date.pipe';
 
 @Component({
   standalone: true,
@@ -42,7 +43,8 @@ import { Auth } from '@angular/fire/auth';
     MatSortModule,
     MatExpansionModule,
     MatIcon,
-    HammerModule
+    HammerModule,
+    TimestampToDatePipe,
   ],
   animations: [
     trigger('cardAnimation', [
@@ -184,14 +186,14 @@ export class MyStudentsComponent {
         const formValue = this.studentForm.value;
         const newStudent: Partial<Student> = {
           name: formValue.name!,
-          phone: '',
-          startDate: new Date(),
-          status: 'active',
-          lessonsCompleted: 0,
-          lastLesson: null,
-          lessons: []
+          phone: '', // Default value
+          startDate: new Date(), // Current date
+          status: 'active', // Default status
+          lessonsCompleted: 0, // Default lessons completed
+          lastLesson: null, // Default no last lesson
+          lessons: [], // Default empty lessons
         };
-
+  
         await this.studentService.addStudent(newStudent);
         this.hideAddStudentForm();
       } catch (error) {
@@ -199,7 +201,7 @@ export class MyStudentsComponent {
       }
     }
   }
-
+  
   async addLesson(studentId: string) {
     if (this.lessonForm.valid) {
       try {

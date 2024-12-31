@@ -3,21 +3,19 @@
   <div class="navigation-header">
     <div class="student-nav">
       @if (students() && students()?.length) {
-        @for (student of students(); track student.id) {
-          <button mat-button 
-                  [class.active]="currentStudentIndex() === $index" 
-                  (click)="setCurrentStudent($index)">
-            {{ student.name }}
-          </button>
-        }
+      @for (student of students(); track student.id) {
+      <button mat-button [class.active]="currentStudentIndex() === $index" (click)="setCurrentStudent($index)">
+        {{ student.name }}
+      </button>
+      }
       } @else {
-        <mat-card class="empty-state">
-          <mat-card-content>
-            <mat-icon class="empty-icon">school</mat-icon>
-            <p>No students yet</p>
-            <p class="hint-text">Click the + button to add your first student</p>
-          </mat-card-content>
-        </mat-card>
+      <mat-card class="empty-state">
+        <mat-card-content>
+          <mat-icon class="empty-icon">school</mat-icon>
+          <p>No students yet</p>
+          <p class="hint-text">Click the + button to add your first student</p>
+        </mat-card-content>
+      </mat-card>
       }
     </div>
     <button mat-mini-fab color="primary" (click)="showAddStudentForm()">
@@ -36,6 +34,7 @@
           @if (student.lastLesson) {
             • Last Lesson: {{ student.lastLesson | date:'mediumDate' }}
           }
+          
         </mat-card-subtitle>
       </mat-card-header>
 
@@ -45,7 +44,8 @@
             <mat-icon>chevron_left</mat-icon>
           </button>
           <span class="student-counter">{{ currentStudentIndex() + 1 }} / {{ students()?.length || 0 }}</span>
-          <button mat-icon-button [disabled]="currentStudentIndex() === (students()?.length ?? 0) - 1" (click)="nextStudent()">
+          <button mat-icon-button [disabled]="currentStudentIndex() === (students()?.length ?? 0) - 1"
+            (click)="nextStudent()">
             <mat-icon>chevron_right</mat-icon>
           </button>
         </div>
@@ -56,7 +56,7 @@
           <table mat-table [dataSource]="student.lessons" class="lessons-table">
             <ng-container matColumnDef="date">
               <th mat-header-cell *matHeaderCellDef>Date</th>
-              <td mat-cell *matCellDef="let lesson">{{ lesson.date | date:'shortDate' }}</td>
+              <td mat-cell *matCellDef="let lesson">{{ lesson.date | timestampToDate | date:'shortDate' }}</td>
             </ng-container>
 
             <ng-container matColumnDef="duration">
@@ -115,13 +115,6 @@
         <mat-form-field appearance="outline">
           <mat-label>Name</mat-label>
           <input matInput formControlName="name">
-        </mat-form-field>
-
-        <mat-form-field appearance="outline">
-          <mat-label>Last Lesson</mat-label>
-          <input matInput [matDatepicker]="lastLessonPicker" formControlName="lastLesson">
-          <mat-datepicker-toggle matIconSuffix [for]="lastLessonPicker"></mat-datepicker-toggle>
-          <mat-datepicker #lastLessonPicker></mat-datepicker>
         </mat-form-field>
 
         <div class="form-actions">
