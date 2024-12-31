@@ -11,6 +11,8 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSortModule } from '@angular/material/sort';
 import { MatExpansionModule } from '@angular/material/expansion';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { map } from 'rxjs';
 
 import Hammer from 'hammerjs';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -18,6 +20,9 @@ import { MatIcon } from '@angular/material/icon';
 import { animate, style, transition, trigger } from '@angular/animations';
 import { HAMMER_GESTURE_CONFIG, HammerGestureConfig, HammerModule } from '@angular/platform-browser';
 import { Student } from '../../../models/student.model';
+import { Lesson } from '../../../models/lesson.model';
+import { Auth } from '@angular/fire/auth';
+
 @Component({
   standalone: true,
   selector: 'app-my-students',
@@ -62,11 +67,7 @@ import { Student } from '../../../models/student.model';
     }
   ]
 })
-// TODO: remove unused vars
 export class MyStudentsComponent {
-Number(arg0: string): number {
-  return Number(arg0);
-}
   @ViewChild('cardContainer') cardContainer!: ElementRef;
   private studentService = inject(StudentService);
   private isBrowser: boolean;
@@ -74,14 +75,24 @@ Number(arg0: string): number {
   private startX = 0;
   private isDragging = false;
   private touchStartX = 0;
+  private auth = inject(Auth);
   private readonly SWIPE_THRESHOLD = 50; // minimum distance for swipe
-  students = this.studentService.getStudents();
+  private studentsObservable$ = this.studentService.getStudents().pipe(
+    map(students => students || [])
+  );
+  
+  students = toSignal(this.studentsObservable$, { 
+    initialValue: [] as Student[]
+  });
+
   currentStudentIndex = signal(0);
   showForm = signal(false);
   displayedColumns = ['date', 'duration', 'notes'];
+
   constructor(@Inject(PLATFORM_ID) platformId: Object) {
     this.isBrowser = isPlatformBrowser(platformId);
   }
+
   onTouchStart(event: TouchEvent) {
     this.startX = event.touches[0].clientX;
     this.isDragging = true;
@@ -119,15 +130,17 @@ Number(arg0: string): number {
     if (Math.abs(diffX) > 100) {
       if (diffX > 0 && this.currentStudentIndex() > 0) {
         this.previousStudent();
-      } else if (diffX < 0 && this.currentStudentIndex() < this.students().length - 1) {
+      } else if (diffX < 0 && this.students() && this.currentStudentIndex() < this.students()!.length - 1) {
         this.nextStudent();
       }
     }
     card.style.transform = 'translateX(0)';
   }
+
   currentStudent = computed(() => {
-    const students = this.students();
-    return students[this.currentStudentIndex()];
+    const studentsList = this.students();
+    if (!studentsList?.length) return null;
+    return studentsList[this.currentStudentIndex()];
   });
 
   studentForm = new FormGroup({
@@ -145,7 +158,7 @@ Number(arg0: string): number {
   }
 
   nextStudent() {
-    if (this.currentStudentIndex() < this.students().length - 1) {
+    if (this.students() && this.currentStudentIndex() < this.students()!.length - 1) {
       this.currentStudentIndex.update(i => i + 1);
     }
   }
@@ -167,38 +180,44 @@ Number(arg0: string): number {
 
   async addStudent() {
     if (this.studentForm.valid) {
-      const formValue = this.studentForm.value;
-      const newStudent: Omit<Student, "lessons"> = {
-        id: Date.now().toString(),
-        name: formValue.name!,
-        phone: '',
-        instructorId: '',
-        startDate: new Date(),
-        status: 'active',
-        lessonsCompleted: 0,
-        lastLesson: undefined
-      };
-
       try {
-      await this.studentService.addStudent(newStudent);
-      this.hideAddStudentForm();
+        const formValue = this.studentForm.value;
+        const newStudent: Partial<Student> = {
+          name: formValue.name!,
+          phone: '',
+          startDate: new Date(),
+          status: 'active',
+          lessonsCompleted: 0,
+          lastLesson: null,
+          lessons: []
+        };
+
+        await this.studentService.addStudent(newStudent);
+        this.hideAddStudentForm();
       } catch (error) {
-      console.error('Error adding student:', error);
+        console.error('Error adding student:', error);
       }
     }
-    }
+  }
 
-  addLesson(studentId: number) {
+  async addLesson(studentId: string) {
     if (this.lessonForm.valid) {
-      const formValue = this.lessonForm.value;
-      const newLesson = {
-        date: formValue.date!,
-        duration: formValue.duration!,
-        notes: formValue.notes || '',
-      };
+      try {
+        const formValue = this.lessonForm.value;
+        const newLesson: Lesson = {
+          date: formValue.date!,
+          duration: formValue.duration!,
+          notes: formValue.notes || '',
+          payment: 0,
+          status: 'scheduled'
+        };
 
-      this.studentService.addLesson(studentId, newLesson);
-      this.lessonForm.reset();
+        await this.studentService.addLesson(studentId, newLesson);
+        this.lessonForm.reset();
+      } catch (error) {
+        console.error('Error adding lesson:', error);
+        // TODO: Show error message to user
+      }
     }
   }
 }

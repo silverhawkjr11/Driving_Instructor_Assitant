@@ -1,25 +1,26 @@
 import { inject, Injectable } from "@angular/core";
-import { AngularFireAuth } from '@angular/fire/compat/auth';
-import { GoogleAuthProvider } from "firebase/auth";
+import { Auth, GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, authState } from '@angular/fire/auth';
 import { Observable } from "rxjs";
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
+  private auth: Auth = inject(Auth);
+
   isLoggedIn$ = new Observable<boolean>(observer => {
-    return this.afAuth.authState.subscribe(user => {
+    return authState(this.auth).subscribe(user => {
       observer.next(!!user);
     });
   });
   user$: any;
 
-  constructor(public afAuth: AngularFireAuth) { }
+  constructor() { }
 
   doGoogleLogin() {
     return new Promise<any>((resolve, reject) => {
       const provider = new GoogleAuthProvider();
-      this.afAuth.signInWithPopup(provider)
+      signInWithPopup(this.auth, provider)
         .then(res => {
           resolve(res);
         })
@@ -32,7 +33,7 @@ export class AuthService {
 
   doRegister(value: { email: any; password: any; }) {
     return new Promise<any>((resolve, reject) => {
-      this.afAuth.createUserWithEmailAndPassword(value.email, value.password).then(
+      createUserWithEmailAndPassword(this.auth, value.email, value.password).then(
         res => {
           resolve(res);
         }, err => reject(err)
@@ -42,7 +43,7 @@ export class AuthService {
 
   doLogin(value: { email: any; password: any; }) {
     return new Promise<any>((resolve, reject) => {
-      this.afAuth.signInWithEmailAndPassword(value.email, value.password).then(
+      signInWithEmailAndPassword(this.auth, value.email, value.password).then(
         res => {
           resolve(res);
         }, err => reject(err)
@@ -51,8 +52,6 @@ export class AuthService {
   }
 
   doLogout() {
-    return new Promise((resolve, reject) => {
-      this.afAuth.signOut()
-    })
+    return signOut(this.auth);
   }
 }

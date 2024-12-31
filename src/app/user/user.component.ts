@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { UserService } from '../core/user.service';
 import { AuthService } from '../core/auth.service';
 import { ActivatedRoute } from '@angular/router';
-import { Location } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { FirebaseUserModel } from '../core/user.model';
 import { BrowserModule } from '@angular/platform-browser';
@@ -14,6 +14,7 @@ import { BrowserModule } from '@angular/platform-browser';
   standalone: true,
   imports: [
     ReactiveFormsModule,
+    CommonModule
   ]
 })
 export class UserComponent implements OnInit {

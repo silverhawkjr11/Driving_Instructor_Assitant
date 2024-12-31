@@ -13,8 +13,7 @@ export class UserResolver implements Resolve<FirebaseUserModel> {
     let user = new FirebaseUserModel();
 
     return new Promise((resolve, reject) => {
-      this.userService.getCurrentUser()
-        .then(res => {
+      this.userService.getCurrentUser()?.then((res: any) => {
           if (res && res.providerData && res.providerData[0]) {
             if (res.providerData[0].providerId == 'password') {
               user.name = res.displayName || '';
@@ -28,8 +27,7 @@ export class UserResolver implements Resolve<FirebaseUserModel> {
             this.router.navigate(['/login']);
             return reject('No user data available');
           }
-        }, err => {
-          this.router.navigate(['/login']);
+        }, (err: any) => {
           return reject(err);
         })
     })

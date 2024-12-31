@@ -2,12 +2,22 @@
   <!-- Student Navigation -->
   <div class="navigation-header">
     <div class="student-nav">
-      @for (student of students(); track student.id) {
-        <button mat-button 
-                [class.active]="currentStudentIndex() === $index" 
-                (click)="setCurrentStudent($index)">
-          {{ student.name }}
-        </button>
+      @if (students() && students()?.length) {
+        @for (student of students(); track student.id) {
+          <button mat-button 
+                  [class.active]="currentStudentIndex() === $index" 
+                  (click)="setCurrentStudent($index)">
+            {{ student.name }}
+          </button>
+        }
+      } @else {
+        <mat-card class="empty-state">
+          <mat-card-content>
+            <mat-icon class="empty-icon">school</mat-icon>
+            <p>No students yet</p>
+            <p class="hint-text">Click the + button to add your first student</p>
+          </mat-card-content>
+        </mat-card>
       }
     </div>
     <button mat-mini-fab color="primary" (click)="showAddStudentForm()">
@@ -34,8 +44,8 @@
           <button mat-icon-button [disabled]="currentStudentIndex() === 0" (click)="previousStudent()">
             <mat-icon>chevron_left</mat-icon>
           </button>
-          <span class="student-counter">{{ currentStudentIndex() + 1 }} / {{ students().length }}</span>
-          <button mat-icon-button [disabled]="currentStudentIndex() === students().length - 1" (click)="nextStudent()">
+          <span class="student-counter">{{ currentStudentIndex() + 1 }} / {{ students()?.length || 0 }}</span>
+          <button mat-icon-button [disabled]="currentStudentIndex() === (students()?.length ?? 0) - 1" (click)="nextStudent()">
             <mat-icon>chevron_right</mat-icon>
           </button>
         </div>
@@ -66,7 +76,7 @@
           <p class="no-lessons">No lessons recorded yet</p>
           }
 
-          <form [formGroup]="lessonForm" (ngSubmit)="addLesson(Number(student.id!))" class="lesson-form">
+          <form [formGroup]="lessonForm" (ngSubmit)="addLesson(student.id!)" class="lesson-form">
             <div class="form-row">
               <mat-form-field appearance="outline">
                 <mat-label>Date</mat-label>

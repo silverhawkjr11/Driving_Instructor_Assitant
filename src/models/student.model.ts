@@ -1,15 +1,14 @@
+import { Lesson } from "./lesson.model";
+
 export interface Student {
-lessons: any;
-lastLesson: any;
   id?: string;
   name: string;
-  email?: string;
   phone: string;
-  instructorId: string; // References the authenticated instructor
   startDate: Date;
+  status: 'active' | 'inactive';
   lessonsCompleted: number;
-  nextLesson?: Date;
-  notes?: string;
-  status: 'active' | 'completed' | 'inactive';
-  // Add any other fields you need
+  lastLesson: Date | null;
+  lessons: Lesson[];
+  balance: number;
+  createdAt: Date;
 }
