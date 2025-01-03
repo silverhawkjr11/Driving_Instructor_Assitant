@@ -11,4 +11,5 @@ export interface Student {
   lessons: Lesson[];
   balance: number;
   createdAt: Date;
-}
+  instructorId: string; // Add this line
+ }

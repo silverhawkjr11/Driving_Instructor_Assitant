@@ -10,10 +10,15 @@ import {
   orderBy,
   where,
   arrayUnion,
-  increment
+  increment,
+  serverTimestamp,
+  DocumentReference,
+  DocumentData,
+  Timestamp,
+  getDocs
 } from '@angular/fire/firestore';
 import { Auth } from '@angular/fire/auth';
-import { map, Observable } from 'rxjs';
+import { first, from, map, Observable } from 'rxjs';
 import { Student } from '../../models/student.model';
 import { Lesson } from '../../models/lesson.model';
 import { onAuthStateChanged } from '@angular/fire/auth';
@@ -28,74 +33,43 @@ export class StudentService {
   private studentsCollection = collection(this.firestore, 'students');
 
   getStudents(): Observable<Student[]> {
-    return new Observable<Student[]>((subscriber) => {
-      onAuthStateChanged(this.auth, (user) => {
-        if (user) {
-          const q = query(
-            this.studentsCollection,
-            where('instructorId', '==', user.uid),
-            orderBy('createdAt', 'desc')
-          );
-  
-          collectionData(q, { idField: 'id' })
-            .pipe(
-              // Map the data to the Student type
-              map((data) =>
-                data.map((doc) => ({
-                  id: doc['id'],
-                  name: doc['name'] || '',
-                  phone: doc['phone'] || '',
-                  startDate: doc['startDate'] || new Date(),
-                  status: doc['status'] || 'active',
-                  lessonsCompleted: doc['lessonsCompleted'] || 0,
-                  lastLesson: doc['lastLesson'] || null,
-                  lessons: doc['lessons'] || [],
-                  instructorId: doc['instructorId'],
-                  createdAt: doc['createdAt'] || new Date(),
-                })) as unknown as Student[]
-              )
-            )
-            .subscribe({
-              next: (data) => subscriber.next(data),
-              error: (error) => subscriber.error(error),
-            });
-        } else {
-          subscriber.next([]);
-        }
-      });
+    const studentsRef = collection(this.firestore, 'students');
+    // Query students for current instructor
+    const q = query(studentsRef, 
+      where('instructorId', '==', this.auth.currentUser?.uid)
+    );
+    return collectionData(q, { idField: 'id' }) as Observable<Student[]>;
+  }
+  getStudentLessons(studentId: string): Observable<Lesson[]> {
+    const lessonsRef = collection(this.firestore, `students/${studentId}/lessons`);
+    const q = query(lessonsRef, orderBy('date', 'desc'));
+    
+    return from(getDocs(q)).pipe(
+      map(snapshot => snapshot.docs.map(doc => ({
+        ...doc.data(),
+        id: doc.id,
+        date: doc.data()['date'] instanceof Timestamp ? 
+          doc.data()['date'].toDate() : 
+          doc.data()['date']
+      })))
+    ) as Observable<Lesson[]>;
+  }
+  async addStudent(student: Partial<Student>): Promise<DocumentReference<DocumentData>> {
+    const studentsRef = collection(this.firestore, 'students');
+    return addDoc(studentsRef, {
+      ...student,
+      createdAt: serverTimestamp(),
+      lessonsCompleted: 0,
+      lastLesson: null,
+      instructorId: this.auth.currentUser?.uid
     });
   }
-    
-  async addStudent(studentData: Partial<Student>): Promise<void> {
-    const user = this.auth.currentUser;
-    if (!user) throw new Error('No authenticated user');
-
-    const newStudent = {
-      ...studentData,
-      instructorId: user.uid,
-      createdAt: new Date(),
-      lessons: []
-    };
-
-    try {
-      await addDoc(this.studentsCollection, newStudent);
-    } catch (error) {
-      console.error('Error adding student:', error);
-      throw error;
-    }
-  }
-
-  async addLesson(studentId: string, lessonData: Lesson): Promise<void> {
-    try {
-      const studentRef = doc(this.firestore, 'students', studentId);
-      await updateDoc(studentRef, {
-        lessons: arrayUnion(lessonData),
-        lastLesson: lessonData.date,
-        lessonsCompleted: increment(1)
-      });
-    } catch (error) {
-      console.error('Error adding lesson:', error);
-      throw error;
-    }
+  async addLesson(studentId: string, lesson: Lesson): Promise<void> {
+    const lessonsRef = collection(this.firestore, `students/${studentId}/lessons`);
+    await addDoc(lessonsRef, {
+      ...lesson,
+      date: Timestamp.fromDate(lesson.date), // Convert Date to Timestamp
+      createdAt: serverTimestamp()
+    });
   }
 }
