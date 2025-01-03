@@ -1,10 +1,10 @@
 <div class="navigation-header">
   <div class="student-nav">
-    @for (student of students; track student.id) {
-    <button mat-button [class.active]="currentIndex === i" (click)="studentSelected.emit(i)">
-      {{ student.name }}
-    </button>
-    }
+    <ng-container *ngFor="let student of students; let i = index; trackBy: trackByStudentId">
+      <button mat-button [class.active]="currentIndex === i" (click)="studentSelected.emit(i)">
+        {{ student.name }}
+      </button>
+    </ng-container>
   </div>
   <button mat-mini-fab color="primary" (click)="addStudent.emit()">
     <mat-icon>add</mat-icon>

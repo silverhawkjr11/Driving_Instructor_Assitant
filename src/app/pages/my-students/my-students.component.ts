@@ -11,6 +11,7 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSortModule } from '@angular/material/sort';
 import { MatExpansionModule } from '@angular/material/expansion';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs';
 
@@ -44,6 +45,7 @@ import { TimestampToDatePipe } from '../../pipes/timestamp-to-date.pipe';
     MatExpansionModule,
     MatIcon,
     HammerModule,
+    MatProgressSpinnerModule,
     TimestampToDatePipe,
   ],
   animations: [
@@ -79,11 +81,16 @@ export class MyStudentsComponent {
   private touchStartX = 0;
   private auth = inject(Auth);
   private readonly SWIPE_THRESHOLD = 50; // minimum distance for swipe
+
+  isLoading = signal(true);
   private studentsObservable$ = this.studentService.getStudents().pipe(
-    map(students => students || [])
+    map(students => {
+      this.isLoading.set(false);
+      return students || [];
+    })
   );
-  
-  students = toSignal(this.studentsObservable$, { 
+
+  students = toSignal(this.studentsObservable$, {
     initialValue: [] as Student[]
   });
 
@@ -182,6 +189,7 @@ export class MyStudentsComponent {
 
   async addStudent() {
     if (this.studentForm.valid) {
+      this.isLoading.set(true);
       try {
         const formValue = this.studentForm.value;
         const newStudent: Partial<Student> = {
@@ -193,17 +201,19 @@ export class MyStudentsComponent {
           lastLesson: null, // Default no last lesson
           lessons: [], // Default empty lessons
         };
-  
         await this.studentService.addStudent(newStudent);
         this.hideAddStudentForm();
       } catch (error) {
         console.error('Error adding student:', error);
+      } finally {
+        this.isLoading.set(false);
       }
     }
   }
-  
+
   async addLesson(studentId: string) {
     if (this.lessonForm.valid) {
+      this.isLoading.set(true);
       try {
         const formValue = this.lessonForm.value;
         const newLesson: Lesson = {
@@ -213,13 +223,15 @@ export class MyStudentsComponent {
           payment: 0,
           status: 'scheduled'
         };
-
         await this.studentService.addLesson(studentId, newLesson);
         this.lessonForm.reset();
       } catch (error) {
         console.error('Error adding lesson:', error);
         // TODO: Show error message to user
+      } finally {
+        this.isLoading.set(false);
       }
     }
   }
 }
+

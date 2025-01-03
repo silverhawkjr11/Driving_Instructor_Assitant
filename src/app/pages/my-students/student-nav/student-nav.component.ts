@@ -2,7 +2,7 @@ import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { Student } from '../../../services/student.service';
+import { Student } from '../../../models/student.model';
 
 @Component({
   selector: 'app-student-nav',
@@ -16,4 +16,9 @@ export class StudentNavComponent {
   @Input() currentIndex!: number;
   @Output() studentSelected = new EventEmitter<number>();
   @Output() addStudent = new EventEmitter<void>();
+  trackByStudentId(index: number, student: Student): number {
+
+    return student.id;
+
+  }
 }

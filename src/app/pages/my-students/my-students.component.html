@@ -2,20 +2,24 @@
   <!-- Student Navigation -->
   <div class="navigation-header">
     <div class="student-nav">
-      @if (students() && students()?.length) {
-      @for (student of students(); track student.id) {
-      <button mat-button [class.active]="currentStudentIndex() === $index" (click)="setCurrentStudent($index)">
-        {{ student.name }}
-      </button>
-      }
+      @if (isLoading()) {
+        <mat-spinner></mat-spinner>
       } @else {
-      <mat-card class="empty-state">
-        <mat-card-content>
-          <mat-icon class="empty-icon">school</mat-icon>
-          <p>No students yet</p>
-          <p class="hint-text">Click the + button to add your first student</p>
-        </mat-card-content>
-      </mat-card>
+        @if (students() && students()?.length) {
+          @for (student of students(); track student.id) {
+            <button mat-button [class.active]="currentStudentIndex() === $index" (click)="setCurrentStudent($index)">
+              {{ student.name }}
+            </button>
+          }
+        } @else {
+          <mat-card class="empty-state">
+            <mat-card-content>
+              <mat-icon class="empty-icon">school</mat-icon>
+              <p>No students yet</p>
+              <p class="hint-text">Click the + button to add your first student</p>
+            </mat-card-content>
+          </mat-card>
+        }
       }
     </div>
     <button mat-mini-fab color="primary" (click)="showAddStudentForm()">

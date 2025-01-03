@@ -22,6 +22,7 @@ import { MatButtonModule } from '@angular/material/button';
 export class LessonFormComponent {
   @Input() studentId!: number;
   @Output() lessonAdded = new EventEmitter<any>();
+  @Output() onLessonAdded = new EventEmitter<any>();
 
   lessonForm = new FormGroup({
     date: new FormControl(null, Validators.required),
