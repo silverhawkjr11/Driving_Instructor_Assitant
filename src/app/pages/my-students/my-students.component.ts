@@ -24,6 +24,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatSortModule } from '@angular/material/sort';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import Fuse from 'fuse.js';  // Add this import
 import { toSignal } from '@angular/core/rxjs-interop';
 import { catchError, finalize, first, map, of, Subject, Subscription, take, takeUntil, tap } from 'rxjs';
 
@@ -117,11 +118,18 @@ export class MyStudentsComponent {
   private studentsObservable$ = this.studentService.getStudents().pipe(
     map((students) => {
       if (students) {
-        // Initialize with empty lessons array
         const studentsWithLessons = students.map((student) => ({ ...student, lessons: [] }));
         this.students.set(studentsWithLessons);
+        this.filteredStudents.set(studentsWithLessons); // Set initial filtered students
 
-        // If we have students, load lessons for the first student
+        // Initialize Fuse.js
+        this.fuse = new Fuse(studentsWithLessons, {
+          keys: ['name'],
+          threshold: 0.3, // Adjust this value to make search more or less strict
+          location: 0,
+          distance: 100,
+        });
+
         if (studentsWithLessons.length > 0 && studentsWithLessons[0].id) {
           this.loadStudentLessons(studentsWithLessons[0].id);
         }
@@ -130,7 +138,9 @@ export class MyStudentsComponent {
       return students || [];
     })
   );
-
+  searchControl = new FormControl('');
+  private fuse: Fuse<Student> | null = null;
+  filteredStudents = signal<Student[]>([]);
   students = signal<Student[]>([]); // Initialize as WritableSignal
 
   currentStudentIndex = signal(0);
@@ -139,8 +149,14 @@ export class MyStudentsComponent {
 
   constructor(@Inject(PLATFORM_ID) platformId: Object) {
     this.isBrowser = isPlatformBrowser(platformId);
-    // Subscribe to get initial students
     this.studentsObservable$.subscribe();
+
+    // Add search subscription
+    this.searchControl.valueChanges.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(searchTerm => {
+      this.filterStudents(searchTerm || '');
+    });
   }
   onTouchStart(event: TouchEvent) {
     this.startX = event.touches[0].clientX;
@@ -206,11 +222,11 @@ export class MyStudentsComponent {
     notes: new FormControl(''),
   });
 
-  setCurrentStudent(index: number) {
-    if (index !== this.currentStudentIndex()) {
-      this.currentStudentIndex.set(index);
-      const student = this.students()[index];
-      if (student?.id) {
+  setCurrentStudent(student: Student) {
+    const mainIndex = this.students().findIndex(s => s.id === student.id);
+    if (mainIndex !== -1) {
+      this.currentStudentIndex.set(mainIndex);
+      if (student.id) {
         this.loadStudentLessons(student.id);
       }
     }
@@ -218,23 +234,15 @@ export class MyStudentsComponent {
 
   nextStudent() {
     if (this.students() && this.currentStudentIndex() < this.students()!.length - 1) {
-      const nextIndex = this.currentStudentIndex() + 1;
-      this.currentStudentIndex.set(nextIndex);
-      const student = this.students()[nextIndex];
-      if (student?.id) {
-        this.loadStudentLessons(student.id);
-      }
+      const nextStudent = this.students()[this.currentStudentIndex() + 1];
+      this.setCurrentStudent(nextStudent);
     }
   }
 
   previousStudent() {
     if (this.currentStudentIndex() > 0) {
-      const prevIndex = this.currentStudentIndex() - 1;
-      this.currentStudentIndex.set(prevIndex);
-      const student = this.students()[prevIndex];
-      if (student?.id) {
-        this.loadStudentLessons(student.id);
-      }
+      const prevStudent = this.students()[this.currentStudentIndex() - 1];
+      this.setCurrentStudent(prevStudent);
     }
   }
 
@@ -331,5 +339,17 @@ export class MyStudentsComponent {
     this.currentSubscription?.unsubscribe();
     this.destroy$.next();
     this.destroy$.complete();
+  }
+  private filterStudents(searchTerm: string) {
+    if (!searchTerm.trim()) {
+      // If search is empty, show all students
+      this.filteredStudents.set(this.students());
+      return;
+    }
+
+    if (this.fuse) {
+      const results = this.fuse.search(searchTerm);
+      this.filteredStudents.set(results.map(result => result.item));
+    }
   }
 }

@@ -1,30 +1,43 @@
 <div class="container">
   <!-- Student Navigation -->
-  <div class="navigation-header">
-    <div class="student-nav">
-      @if (isLoading()) {
-      <mat-spinner></mat-spinner>
-      } @else {
-      @if (students() && students()?.length) {
-      @for (student of students(); track student.id) {
-      <button mat-button [class.active]="currentStudentIndex() === $index" (click)="setCurrentStudent($index)">
-        {{ student.name }}
+  <div class="navigation-section">
+    <div class="navigation-header">
+      <!-- Search Field -->
+      <mat-form-field appearance="outline" class="search-field">
+        <mat-label>Search</mat-label>
+        <input matInput [formControl]="searchControl" placeholder="Type to search...">
+        <mat-icon matSuffix>search</mat-icon>
+      </mat-form-field>
+
+      <!-- Student Navigation -->
+      <div class="student-nav">
+        @if (isLoading()) {
+        <mat-spinner diameter="24"></mat-spinner>
+        } @else {
+        @if (filteredStudents() && filteredStudents()?.length) {
+        @for (student of filteredStudents(); track student.id) {
+        <button mat-button [class.active]="currentStudent()?.id === student.id" (click)="setCurrentStudent(student)">
+          <!-- Pass the student object instead of index -->
+          {{ student.name }}
+        </button>
+        }
+        } @else {
+        <span class="empty-message">
+          @if (searchControl.value) {
+          No matches found
+          } @else {
+          No students yet
+          }
+        </span>
+        }
+        }
+      </div>
+
+      <!-- Add Button -->
+      <button mat-mini-fab color="primary" (click)="showAddStudentForm()">
+        <mat-icon>add</mat-icon>
       </button>
-      }
-      } @else {
-      <mat-card class="empty-state">
-        <mat-card-content>
-          <mat-icon class="empty-icon">school</mat-icon>
-          <p>No students yet</p>
-          <p class="hint-text">Click the + button to add your first student</p>
-        </mat-card-content>
-      </mat-card>
-      }
-      }
     </div>
-    <button mat-mini-fab color="primary" (click)="showAddStudentForm()">
-      <mat-icon>add</mat-icon>
-    </button>
   </div>
 
   <!-- Current Student Card -->
