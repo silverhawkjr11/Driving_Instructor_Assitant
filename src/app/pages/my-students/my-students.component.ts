@@ -116,12 +116,17 @@ export class MyStudentsComponent {
   isLoading = signal(true);
   private studentsObservable$ = this.studentService.getStudents().pipe(
     map((students) => {
-      this.isLoading.set(false);
       if (students) {
-        this.students.set(
-          students.map((student) => ({ ...student, lessons: [] }))
-        );
+        // Initialize with empty lessons array
+        const studentsWithLessons = students.map((student) => ({ ...student, lessons: [] }));
+        this.students.set(studentsWithLessons);
+
+        // If we have students, load lessons for the first student
+        if (studentsWithLessons.length > 0 && studentsWithLessons[0].id) {
+          this.loadStudentLessons(studentsWithLessons[0].id);
+        }
       }
+      this.isLoading.set(false);
       return students || [];
     })
   );
@@ -136,15 +141,6 @@ export class MyStudentsComponent {
     this.isBrowser = isPlatformBrowser(platformId);
     // Subscribe to get initial students
     this.studentsObservable$.subscribe();
-
-    // Load current student's lessons when index changes
-    effect(() => {
-      const index = this.currentStudentIndex();
-      const student = this.students()[index];
-      if (student?.id) {
-        this.loadStudentLessons(student.id);
-      }
-    });
   }
   onTouchStart(event: TouchEvent) {
     this.startX = event.touches[0].clientX;
@@ -211,25 +207,34 @@ export class MyStudentsComponent {
   });
 
   setCurrentStudent(index: number) {
-    this.currentStudentIndex.set(index);
-    const student = this.students()[index];
-    if (student?.id) {
-      this.loadStudentLessons(student.id);
+    if (index !== this.currentStudentIndex()) {
+      this.currentStudentIndex.set(index);
+      const student = this.students()[index];
+      if (student?.id) {
+        this.loadStudentLessons(student.id);
+      }
     }
   }
 
   nextStudent() {
-    if (
-      this.students() &&
-      this.currentStudentIndex() < this.students()!.length - 1
-    ) {
-      this.currentStudentIndex.update((i) => i + 1);
+    if (this.students() && this.currentStudentIndex() < this.students()!.length - 1) {
+      const nextIndex = this.currentStudentIndex() + 1;
+      this.currentStudentIndex.set(nextIndex);
+      const student = this.students()[nextIndex];
+      if (student?.id) {
+        this.loadStudentLessons(student.id);
+      }
     }
   }
 
   previousStudent() {
     if (this.currentStudentIndex() > 0) {
-      this.currentStudentIndex.update((i) => i - 1);
+      const prevIndex = this.currentStudentIndex() - 1;
+      this.currentStudentIndex.set(prevIndex);
+      const student = this.students()[prevIndex];
+      if (student?.id) {
+        this.loadStudentLessons(student.id);
+      }
     }
   }
 
@@ -292,18 +297,16 @@ export class MyStudentsComponent {
   private loadStudentLessons(studentId: string) {
     // Cleanup any existing subscription
     this.currentSubscription?.unsubscribe();
-    
-    console.log('Loading started');
+
     this.isLoading.set(true);
-    
+
     this.currentSubscription = this.studentService.getStudentLessons(studentId).pipe(
-      first(), // Take first value and complete
+      take(1), // Take only one emission and complete
       tap(lessons => {
-        console.log('Processing lessons:', lessons);
         this.students.update(currentStudents => {
           const index = currentStudents.findIndex(s => s.id === studentId);
           if (index === -1) return currentStudents;
-          
+
           const updated = [...currentStudents];
           updated[index] = { ...updated[index], lessons };
           return updated;
@@ -314,12 +317,16 @@ export class MyStudentsComponent {
         return of([]);
       }),
       finalize(() => {
-        console.log('Loading finished');
         this.isLoading.set(false);
       })
     ).subscribe();
   }
-
+  refreshLessons() {
+    const currentStudent = this.currentStudent();
+    if (currentStudent?.id) {
+      this.loadStudentLessons(currentStudent.id);
+    }
+  }
   ngOnDestroy() {
     this.currentSubscription?.unsubscribe();
     this.destroy$.next();

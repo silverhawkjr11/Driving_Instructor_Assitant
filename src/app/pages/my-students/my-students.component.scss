@@ -188,3 +188,24 @@
   margin: 0 auto;
   display: block;
 }
+
+.lessons-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+
+  .header-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    h3 {
+      margin: 0;
+    }
+  }
+
+  .mat-spinner {
+    margin-left: 8px;
+  }
+}

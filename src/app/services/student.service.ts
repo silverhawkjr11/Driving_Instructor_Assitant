@@ -1,8 +1,8 @@
 import { Injectable, inject } from '@angular/core';
-import { 
-  Firestore, 
-  collection, 
-  collectionData, 
+import {
+  Firestore,
+  collection,
+  collectionData,
   doc,
   addDoc,
   updateDoc,
@@ -35,7 +35,7 @@ export class StudentService {
   getStudents(): Observable<Student[]> {
     const studentsRef = collection(this.firestore, 'students');
     // Query students for current instructor
-    const q = query(studentsRef, 
+    const q = query(studentsRef,
       where('instructorId', '==', this.auth.currentUser?.uid)
     );
     return collectionData(q, { idField: 'id' }) as Observable<Student[]>;
@@ -43,14 +43,14 @@ export class StudentService {
   getStudentLessons(studentId: string): Observable<Lesson[]> {
     const lessonsRef = collection(this.firestore, `students/${studentId}/lessons`);
     const q = query(lessonsRef, orderBy('date', 'desc'));
-    
-    return from(getDocs(q)).pipe(
-      map(snapshot => snapshot.docs.map(doc => ({
-        ...doc.data(),
-        id: doc.id,
-        date: doc.data()['date'] instanceof Timestamp ? 
-          doc.data()['date'].toDate() : 
-          doc.data()['date']
+
+    // Use collectionData instead of getDocs to get real-time updates
+    return collectionData(q, { idField: 'id' }).pipe(
+      map(lessons => lessons.map(lesson => ({
+        ...lesson,
+        date: lesson['date'] instanceof Timestamp ?
+          lesson['date'].toDate() :
+          lesson['date']
       })))
     ) as Observable<Lesson[]>;
   }

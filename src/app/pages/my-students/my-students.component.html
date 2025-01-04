@@ -3,23 +3,23 @@
   <div class="navigation-header">
     <div class="student-nav">
       @if (isLoading()) {
-        <mat-spinner></mat-spinner>
+      <mat-spinner></mat-spinner>
       } @else {
-        @if (students() && students()?.length) {
-          @for (student of students(); track student.id) {
-            <button mat-button [class.active]="currentStudentIndex() === $index" (click)="setCurrentStudent($index)">
-              {{ student.name }}
-            </button>
-          }
-        } @else {
-          <mat-card class="empty-state">
-            <mat-card-content>
-              <mat-icon class="empty-icon">school</mat-icon>
-              <p>No students yet</p>
-              <p class="hint-text">Click the + button to add your first student</p>
-            </mat-card-content>
-          </mat-card>
-        }
+      @if (students() && students()?.length) {
+      @for (student of students(); track student.id) {
+      <button mat-button [class.active]="currentStudentIndex() === $index" (click)="setCurrentStudent($index)">
+        {{ student.name }}
+      </button>
+      }
+      } @else {
+      <mat-card class="empty-state">
+        <mat-card-content>
+          <mat-icon class="empty-icon">school</mat-icon>
+          <p>No students yet</p>
+          <p class="hint-text">Click the + button to add your first student</p>
+        </mat-card-content>
+      </mat-card>
+      }
       }
     </div>
     <button mat-mini-fab color="primary" (click)="showAddStudentForm()">
@@ -36,9 +36,9 @@
         <mat-card-subtitle>
           Phone: {{ student.phone }} • Started: {{ student.startDate | date:'mediumDate' }}
           @if (student.lastLesson) {
-            • Last Lesson: {{ student.lastLesson | date:'mediumDate' }}
+          • Last Lesson: {{ student.lastLesson | date:'mediumDate' }}
           }
-          
+
         </mat-card-subtitle>
       </mat-card-header>
 
@@ -56,6 +56,12 @@
 
         <div class="lessons-section">
           <h3>Lessons</h3>
+          <button mat-icon-button (click)="refreshLessons()" [disabled]="isLoading()">
+            <mat-icon>refresh</mat-icon>
+            @if (isLoading()) {
+            <mat-spinner diameter="24"></mat-spinner>
+            }
+          </button>
           @if (student.lessons.length > 0) {
           <table mat-table [dataSource]="student.lessons" class="lessons-table">
             <ng-container matColumnDef="date">
