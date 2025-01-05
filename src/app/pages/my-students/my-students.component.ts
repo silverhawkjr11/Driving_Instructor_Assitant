@@ -158,6 +158,13 @@ export class MyStudentsComponent {
       this.filterStudents(searchTerm || '');
     });
   }
+
+  switchToFirstFilteredStudent() {
+    const filteredStudents = this.filteredStudents();
+    if (filteredStudents && filteredStudents.length > 0) {
+      this.setCurrentStudent(filteredStudents[0]);
+    }
+  }
   onTouchStart(event: TouchEvent) {
     this.startX = event.touches[0].clientX;
     this.isDragging = true;
