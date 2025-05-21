@@ -1,0 +1,15 @@
+I0416 09:04:19.125209  815318 load.go:37] Reloading schema and connectors...
+I0416 09:04:19.140751  815318 control.go:45] [engine.Service /emulator/frontend 6e3c] UpdateSchema(): done sources: schema/schema.gql [1384B] 
+I0416 09:04:19.153878  815318 control.go:73] [engine.Service /emulator/frontend 6e3c] UpdateConnector(default): done sources: connector/queries.gql [1855B] connector/mutations.gql [1163B] 
+I0416 09:04:19.181299  815318 codegen.go:82] [connector "default" javascriptSdk] Generating sources into "/home/testuser/Desktop/myworkspace/Driving_Instructor_Assistant/frontend/dataconnect-generated/js/default-connector"
+I0416 09:04:19.182814  815318 collector.go:107] schema extensions wrote into "/home/testuser/Desktop/myworkspace/Driving_Instructor_Assistant/frontend/dataconnect/.dataconnect/schema"
+Generated sources: prelude.gql [65151B] 
+I0416 09:04:19.183382  815318 collector.go:107] connector "default" javascriptSdk wrote into "/home/testuser/Desktop/myworkspace/Driving_Instructor_Assistant/frontend/dataconnect-generated/js/default-connector"
+Generated sources: esm/package.json [17B] index.cjs.js [222B] package.json [634B] index.d.ts [264B] esm/index.esm.js [181B] 
+I0416 09:04:19.186784  815318 installsdk.go:76] Running command: /home/testuser/.cache/firebase/runtime/npm install file:dataconnect-generated/js/default-connector
+E0416 09:04:19.187478  815318 installsdk.go:78] Failed to install package: fork/exec /home/testuser/.cache/firebase/runtime/npm: exec format error
+I0416 09:04:19.187553  815318 load.go:115] Finished reloading
+I0416 09:04:19.187775  815318 dev.go:95] Listening on address (HTTP + gRPC): 127.0.0.1:4000
+I0416 09:04:19.187856  815318 dev.go:95] Listening on address (HTTP + gRPC): [::1]:4000
+I0416 09:04:26.380193  815318 control.go:45] [engine.Service /emulator/frontend 5790] UpdateSchema(): done sources: schema/schema.gql [1384B] 
+I0416 09:04:26.380395  815318 control.go:73] [engine.Service /emulator/frontend 5790] UpdateConnector(default): done sources: connector/mutations.gql [1163B] connector/queries.gql [1855B] 

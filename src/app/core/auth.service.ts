@@ -40,16 +40,32 @@ export class AuthService {
       )
     })
   }
-
   doLogin(value: { email: any; password: any; }) {
+    console.log('Auth service: starting login process');
     return new Promise<any>((resolve, reject) => {
-      signInWithEmailAndPassword(this.auth, value.email, value.password).then(
-        res => {
+      console.log('Auth service: sending request to Firebase');
+      signInWithEmailAndPassword(this.auth, value.email, value.password)
+        .then(res => {
+          console.log('Login successful', res);
           resolve(res);
-        }, err => reject(err)
-      )
-    })
+        })
+        .catch(error => {
+          console.error('Auth Service: Login error', error);
+          console.error('Error code:', error.code);
+          console.error('Error message:', error.message);
+          reject(error);
+        });
+    });
   }
+  // doLogin(value: { email: any; password: any; }) {
+  //   return new Promise<any>((resolve, reject) => {
+  //     signInWithEmailAndPassword(this.auth, value.email, value.password).then(
+  //       res => {
+  //         resolve(res);
+  //       }, err => reject(err)
+  //     )
+  //   })
+  // }
 
   doLogout() {
     return signOut(this.auth);
