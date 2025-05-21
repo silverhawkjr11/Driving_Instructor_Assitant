@@ -1,0 +1,70 @@
+:root {
+  /* Catppuccin Mocha Palette */
+  --ctp-mocha-rosewater: #f5e0dc;
+  --ctp-mocha-flamingo: #f2cdcd;
+  --ctp-mocha-pink: #f5c2e7;
+  --ctp-mocha-mauve: #cba6f7;
+  --ctp-mocha-red: #f38ba8;
+  --ctp-mocha-maroon: #eba0ac;
+  --ctp-mocha-peach: #fab387;
+  --ctp-mocha-yellow: #f9e2af;
+  --ctp-mocha-green: #a6e3a1;
+  --ctp-mocha-teal: #94e2d5;
+  --ctp-mocha-sky: #89dceb;
+  --ctp-mocha-sapphire: #74c7ec;
+  --ctp-mocha-blue: #89b4fa;
+  --ctp-mocha-lavender: #b4befe;
+  --ctp-mocha-text: #cdd6f4;
+  --ctp-mocha-subtext1: #bac2de;
+  --ctp-mocha-subtext0: #a6adc8;
+  --ctp-mocha-overlay2: #9399b2;
+  --ctp-mocha-overlay1: #7f849c;
+  --ctp-mocha-overlay0: #6c7086;
+  --ctp-mocha-surface2: #585b70;
+  --ctp-mocha-surface1: #45475a;
+  --ctp-mocha-surface0: #313244;
+  --ctp-mocha-base: #1e1e2e;
+  --ctp-mocha-mantle: #181825;
+  --ctp-mocha-crust: #11111b;
+
+  /* RGB version for transparent colors */
+  --ctp-mocha-crust-rgb: 17, 17, 27;
+  --ctp-mocha-base-rgb: 30, 30, 46;
+  --ctp-mocha-mantle-rgb: 24, 24, 37;
+
+  /* Application Theme Variables */
+  --primary-color: var(--ctp-mocha-blue);
+  --accent-color: var(--ctp-mocha-mauve);
+  --warn-color: var(--ctp-mocha-red);
+
+  --primary-background-color: var(--ctp-mocha-base);
+  --secondary-background-color: var(--ctp-mocha-mantle);
+  --tertiary-background-color: var(--ctp-mocha-crust);
+  
+  --primary-text-color: var(--ctp-mocha-text);
+  --secondary-text-color: var(--ctp-mocha-subtext0);
+  --disabled-text-color: var(--ctp-mocha-overlay0);
+  --button-text-color: var(--ctp-mocha-crust); /* For text on primary/accent buttons */
+
+  --divider-color: var(--ctp-mocha-surface1);
+  --elevation-color: rgba(var(--ctp-mocha-crust-rgb), 0.2); /* Shadow color */
+  
+  --highlight-color: var(--ctp-mocha-surface0); /* For selected items, active states */
+  --link-color: var(--ctp-mocha-rosewater);
+  
+  --code-block-background: var(--ctp-mocha-mantle);
+  --code-block-text-color: var(--ctp-mocha-text);
+
+  --tooltip-background-color: var(--ctp-mocha-surface2);
+  --tooltip-text-color: var(--ctp-mocha-text);
+
+  /* Additional UI element colors */
+  --scrollbar-thumb-color: var(--ctp-mocha-surface1);
+  --scrollbar-track-color: var(--ctp-mocha-base);
+  --input-background-color: var(--ctp-mocha-surface0);
+  --input-border-color: var(--ctp-mocha-surface2);
+  --input-focus-border-color: var(--ctp-mocha-blue);
+  --success-color: var(--ctp-mocha-green);
+  --info-color: var(--ctp-mocha-sky);
+  --error-color: var(--ctp-mocha-red); /* same as warn, can be different if needed */
+}

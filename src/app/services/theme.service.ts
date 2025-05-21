@@ -10,6 +10,7 @@ export class ThemeService {
   private readonly THEME_KEY = 'selected-theme';
 
   themes = [
+    { name: 'Catppuccin Mocha', value: 'assets/themes/catppuccin-mocha.css' },
     { name: 'Indigo & Pink', value: 'assets/themes/indigo-pink.css' },
     { name: 'Pink & Blue Grey', value: 'assets/themes/pink-bluegrey.css' },
     { name: 'Purple & Green', value: 'assets/themes/purple-green.css' },
