@@ -1,70 +1,364 @@
-.container {
-  padding: 16px;
-}
+// Add to your my-students.component.scss
 
-.navigation-header {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin-bottom: 20px;
+.student-card {
   background: rgba(255, 255, 255, 0.05);
-  padding: 8px 16px;
-  border-radius: 8px;
 
-  .search-field {
-    width: 200px;
-    margin: 0;
-
-    ::ng-deep .mat-mdc-form-field-wrapper {
-      padding-bottom: 0;
-      margin: 0;
-    }
-
-    ::ng-deep .mat-mdc-form-field-flex {
-      min-height: 40px;
-    }
-  }
-
-  .student-nav {
+  mat-card-header {
     display: flex;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    gap: 8px;
-    flex: 1;
-    align-items: center;
-    min-height: 40px;
-    margin: 0;
-    padding: 0 8px;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 20px;
 
-    button {
+    .student-avatar {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
       flex-shrink: 0;
-      height: 36px;
-      line-height: 36px;
-      padding: 0 16px;
-      border-radius: 18px;
-      white-space: nowrap;
 
-      &.active {
-        background: rgba(255, 255, 255, 0.1);
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .default-avatar {
+        font-size: 30px;
+        color: rgba(255, 255, 255, 0.6);
       }
     }
 
-    .empty-message {
-      opacity: 0.7;
-      font-size: 0.9rem;
+    .student-header-info {
+      flex: 1;
+
+      mat-card-title {
+        color: white;
+        margin-bottom: 8px;
+      }
+
+      .student-details {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+
+        span {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          color: rgba(255, 255, 255, 0.7);
+          font-size: 0.9rem;
+
+          mat-icon {
+            font-size: 16px;
+            width: 16px;
+            height: 16px;
+          }
+        }
+      }
     }
 
-    &::-webkit-scrollbar {
-      height: 3px;
+    .status-badges {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+  }
+}
+
+.status-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+
+  &.status-paid {
+    background: rgba(76, 175, 80, 0.2);
+    color: #4caf50;
+  }
+
+  &.status-owes {
+    background: rgba(255, 193, 7, 0.2);
+    color: #ffc107;
+  }
+
+  &.status-overdue {
+    background: rgba(244, 67, 54, 0.2);
+    color: #f44336;
+  }
+
+  &.ready {
+    background: rgba(76, 175, 80, 0.2);
+    color: #4caf50;
+  }
+
+  &.not-ready {
+    background: rgba(158, 158, 158, 0.2);
+    color: #9e9e9e;
+  }
+
+  mat-icon {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+  }
+}
+
+.student-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin: 16px 0;
+
+  .stat-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+
+    &.warning {
+      border-color: #f44336;
+      background: rgba(244, 67, 54, 0.1);
+
+      .stat-value {
+        color: #f44336;
+      }
     }
 
-    &::-webkit-scrollbar-thumb {
-      background-color: rgba(255, 255, 255, 0.2);
-      border-radius: 2px;
+    .stat-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      mat-icon {
+        font-size: 20px;
+        color: rgba(255, 255, 255, 0.7);
+      }
+    }
+
+    .stat-info {
+      flex: 1;
+      min-width: 0;
+
+      .stat-value {
+        font-size: 16px;
+        font-weight: 600;
+        color: white;
+        line-height: 1.2;
+      }
+
+      .stat-label {
+        font-size: 11px;
+        color: rgba(255, 255, 255, 0.6);
+        line-height: 1.2;
+      }
+    }
+  }
+}
+
+.quick-actions {
+  display: flex;
+  gap: 12px;
+  margin: 16px 0;
+
+  button {
+    flex: 1;
+
+    mat-icon {
+      margin-right: 8px;
+    }
+  }
+}
+
+.progress-notes {
+  margin: 16px 0;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  border-left: 3px solid #4caf50;
+
+  h4 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 8px 0;
+    color: white;
+    font-size: 14px;
+
+    mat-icon {
+      font-size: 16px;
     }
   }
 
-  button[mat-mini-fab] {
-    flex-shrink: 0;
+  p {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 14px;
+    line-height: 1.4;
+  }
+}
+
+.lessons-section {
+  margin-top: 20px;
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+
+    h3 {
+      color: white;
+      margin: 0;
+    }
+  }
+
+  .lessons-list {
+    margin-bottom: 20px;
+  }
+
+  .lesson-item {
+    display: grid;
+    grid-template-columns: auto 60px 80px;
+    gap: 12px;
+    align-items: center;
+    padding: 8px 12px;
+    margin-bottom: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 6px;
+    border-left: 3px solid transparent;
+
+    .lesson-date {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 13px;
+
+      mat-icon {
+        font-size: 14px;
+        width: 14px;
+        height: 14px;
+      }
+    }
+
+    .lesson-duration {
+      text-align: center;
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 12px;
+    }
+
+    .lesson-cost {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      font-weight: 500;
+
+      &.paid {
+        color: #4caf50;
+
+        mat-icon {
+          color: #4caf50;
+        }
+      }
+
+      &.unpaid {
+        color: #ffc107;
+
+        mat-icon {
+          color: #ffc107;
+        }
+      }
+
+      mat-icon {
+        font-size: 14px;
+        width: 14px;
+        height: 14px;
+      }
+    }
+
+    .lesson-notes {
+      grid-column: 1 / -1;
+      margin-top: 4px;
+      padding-top: 8px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      color: rgba(255, 255, 255, 0.6);
+      font-size: 12px;
+      font-style: italic;
+    }
+  }
+
+  .show-more {
+    text-align: center;
+    margin-top: 12px;
+  }
+
+  .no-lessons {
+    text-align: center;
+    color: rgba(255, 255, 255, 0.5);
+    font-style: italic;
+    padding: 20px;
+    margin: 12px 0;
+  }
+}
+
+.lesson-form {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 16px;
+  border-radius: 8px;
+  margin-top: 16px;
+
+  h4 {
+    color: white;
+    margin: 0 0 16px 0;
+    font-size: 16px;
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 100px 100px;
+    gap: 12px;
+    margin-bottom: 12px;
+
+    @media (max-width: 768px) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .notes-field {
+    width: 100%;
+    margin-bottom: 12px;
+  }
+
+  .form-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    mat-checkbox {
+      color: rgba(255, 255, 255, 0.8);
+    }
+  }
+}
+
+// Update the add student form to include phone
+.dialog-container {
+  form {
+    mat-form-field {
+      width: 100%;
+      margin-bottom: 12px;
+    }
   }
 }

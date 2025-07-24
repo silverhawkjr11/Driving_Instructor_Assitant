@@ -18,7 +18,6 @@
         @if (filteredStudents() && filteredStudents()?.length) {
         @for (student of filteredStudents(); track student.id) {
         <button mat-button [class.active]="currentStudent()?.id === student.id" (click)="setCurrentStudent(student)">
-          <!-- Pass the student object instead of index -->
           {{ student.name }}
         </button>
         }
@@ -44,19 +43,45 @@
   <!-- Current Student Card -->
   @if (currentStudent(); as student) {
   <div class="student-card-container" [@cardAnimation]="currentStudentIndex()" (touchstart)="onTouchStart($event)"
-    (touchmove)="onTouchMove($event)" (touchend)="onTouchEnd($event)" #cardContainer> <mat-card class="student-card">
+    (touchmove)="onTouchMove($event)" (touchend)="onTouchEnd($event)" #cardContainer>
+    <mat-card class="student-card">
       <mat-card-header>
-        <mat-card-title>{{ student.name }}</mat-card-title>
-        <mat-card-subtitle>
-          Phone: {{ student.phone }} • Started: {{ student.startDate | date:'mediumDate' }}
-          @if (student.lastLesson) {
-          • Last Lesson: {{ student.lastLesson | date:'mediumDate' }}
-          }
+        <div class="student-avatar">
+          <img *ngIf="student.photo" [src]="student.photo" [alt]="student.name">
+          <mat-icon *ngIf="!student.photo" class="default-avatar">person</mat-icon>
+        </div>
 
-        </mat-card-subtitle>
+        <div class="student-header-info">
+          <mat-card-title>{{ student.name }}</mat-card-title>
+          <mat-card-subtitle>
+            <div class="student-details">
+              <span><mat-icon>phone</mat-icon>{{ student.phone || 'Not set' }}</span>
+              <span><mat-icon>calendar_today</mat-icon>Started: {{ student.startDate | date:'shortDate' }}</span>
+              @if (student.lastLesson) {
+              <span><mat-icon>schedule</mat-icon>Last Lesson: {{ student.lastLesson | date:'shortDate' }}</span>
+              }
+            </div>
+          </mat-card-subtitle>
+        </div>
+
+        <!-- Status Badges -->
+        <div class="status-badges">
+          <!-- Payment Status -->
+          <div class="status-badge" [ngClass]="getPaymentStatusClass(student.paymentStatus)">
+            <mat-icon>{{ getPaymentStatusIcon(student.paymentStatus) }}</mat-icon>
+            <span>{{ getPaymentStatusText(student.paymentStatus) }}</span>
+          </div>
+
+          <!-- Test Readiness -->
+          <div class="status-badge" [ngClass]="student.isReadyForTest ? 'ready' : 'not-ready'">
+            <mat-icon>{{ student.isReadyForTest ? 'check_circle' : 'schedule' }}</mat-icon>
+            <span>{{ student.isReadyForTest ? 'Ready for Test' : (30 - (student.lessonsCompleted || 0)) + ' more needed' }}</span>
+          </div>
+        </div>
       </mat-card-header>
 
       <mat-card-content>
+        <!-- Navigation -->
         <div class="card-navigation">
           <button mat-icon-button [disabled]="currentStudentIndex() === 0" (click)="previousStudent()">
             <mat-icon>chevron_left</mat-icon>
@@ -68,39 +93,103 @@
           </button>
         </div>
 
-        <div class="lessons-section">
-          <h3>Lessons</h3>
-          <button mat-icon-button (click)="refreshLessons()" [disabled]="isLoading()">
-            <mat-icon>refresh</mat-icon>
-            @if (isLoading()) {
-            <mat-spinner diameter="24"></mat-spinner>
-            }
+        <!-- Quick Stats -->
+        <div class="student-stats">
+          <div class="stat-card payment-stat" [ngClass]="{'warning': (student.balance || 0) > 0}">
+            <div class="stat-icon">
+              <mat-icon>account_balance_wallet</mat-icon>
+            </div>
+            <div class="stat-info">
+              <div class="stat-value">{{ (student.balance || 0) | currency:'USD':'symbol':'1.2-2' }}</div>
+              <div class="stat-label">Balance {{ (student.balance || 0) > 0 ? 'Owed' : (student.balance || 0) < 0 ? 'Credit' : '' }}</div>
+            </div>
+          </div>
+
+          <div class="stat-card lessons-stat">
+            <div class="stat-icon">
+              <mat-icon>school</mat-icon>
+            </div>
+            <div class="stat-info">
+              <div class="stat-value">{{ student.lessonsCompleted || 0 }}</div>
+              <div class="stat-label">Lessons Completed</div>
+            </div>
+          </div>
+
+          <div class="stat-card progress-stat">
+            <div class="stat-icon">
+              <mat-icon>trending_up</mat-icon>
+            </div>
+            <div class="stat-info">
+              <div class="stat-value">{{ getTestProgressPercentage(student.lessonsCompleted || 0) }}%</div>
+              <div class="stat-label">Test Progress</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="quick-actions">
+          <button mat-stroked-button (click)="openPaymentDialog(student)">
+            <mat-icon>payment</mat-icon>
+            Record Payment
           </button>
-          @if (student.lessons.length > 0) {
-          <table mat-table [dataSource]="student.lessons" class="lessons-table">
-            <ng-container matColumnDef="date">
-              <th mat-header-cell *matHeaderCellDef>Date</th>
-              <td mat-cell *matCellDef="let lesson">{{ lesson.date | timestampToDate | date:'shortDate' }}</td>
-            </ng-container>
+          <button mat-stroked-button (click)="openProgressDialog(student)">
+            <mat-icon>edit_note</mat-icon>
+            Update Progress
+          </button>
+        </div>
 
-            <ng-container matColumnDef="duration">
-              <th mat-header-cell *matHeaderCellDef>Duration</th>
-              <td mat-cell *matCellDef="let lesson">{{ lesson.duration }} mins</td>
-            </ng-container>
+        <!-- Progress Notes -->
+        @if (student.progressNotes) {
+        <div class="progress-notes">
+          <h4><mat-icon>note</mat-icon>Progress Notes</h4>
+          <p>{{ student.progressNotes }}</p>
+        </div>
+        }
 
-            <ng-container matColumnDef="notes">
-              <th mat-header-cell *matHeaderCellDef>Notes</th>
-              <td mat-cell *matCellDef="let lesson">{{ lesson.notes }}</td>
-            </ng-container>
+        <!-- Lessons Section -->
+        <div class="lessons-section">
+          <div class="section-header">
+            <h3>Recent Lessons</h3>
+            <button mat-icon-button (click)="refreshLessons()" [disabled]="isLoading()">
+              <mat-icon>refresh</mat-icon>
+              @if (isLoading()) {
+              <mat-spinner diameter="24"></mat-spinner>
+              }
+            </button>
+          </div>
 
-            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-          </table>
+          @if (student.lessons && student.lessons.length > 0) {
+          <div class="lessons-list">
+            @for (lesson of student.lessons.slice(-5); track lesson.id || $index) {
+            <div class="lesson-item">
+              <div class="lesson-date">
+                <mat-icon>event</mat-icon>
+                <!-- Fixed: Remove timestampToDate pipe, just use date pipe -->
+                {{ lesson.date | date:'shortDate' }}
+              </div>
+              <div class="lesson-duration">{{ lesson.duration }}min</div>
+              <div class="lesson-cost" [ngClass]="{'paid': lesson.isPaid, 'unpaid': !lesson.isPaid}">
+                {{ (lesson.cost || 0) | currency:'USD':'symbol':'1.2-2' }}
+                <mat-icon>{{ lesson.isPaid ? 'check_circle' : 'schedule' }}</mat-icon>
+              </div>
+              <div class="lesson-notes" *ngIf="lesson.notes">{{ lesson.notes }}</div>
+            </div>
+            }
+            @if (student.lessons.length > 5) {
+            <div class="show-more">
+              <button mat-button (click)="showAllLessons(student)">
+                View All {{ student.lessons.length }} Lessons
+              </button>
+            </div>
+            }
+          </div>
           } @else {
           <p class="no-lessons">No lessons recorded yet</p>
           }
 
+          <!-- Add Lesson Form -->
           <form [formGroup]="lessonForm" (ngSubmit)="addLesson(student.id!)" class="lesson-form">
+            <h4>Add New Lesson</h4>
             <div class="form-row">
               <mat-form-field appearance="outline">
                 <mat-label>Date</mat-label>
@@ -113,6 +202,11 @@
                 <mat-label>Duration (minutes)</mat-label>
                 <input matInput type="number" formControlName="duration">
               </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Cost</mat-label>
+                <input matInput type="number" formControlName="cost" step="0.01">
+              </mat-form-field>
             </div>
 
             <mat-form-field appearance="outline" class="notes-field">
@@ -120,9 +214,12 @@
               <textarea matInput formControlName="notes" rows="2"></textarea>
             </mat-form-field>
 
-            <button mat-raised-button color="primary" type="submit" [disabled]="!lessonForm.valid">
-              Add Lesson
-            </button>
+            <div class="form-actions">
+              <mat-checkbox formControlName="isPaid">Mark as Paid</mat-checkbox>
+              <button mat-raised-button color="primary" type="submit" [disabled]="!lessonForm.valid">
+                Add Lesson
+              </button>
+            </div>
           </form>
         </div>
       </mat-card-content>
@@ -138,7 +235,22 @@
       <form [formGroup]="studentForm" (ngSubmit)="addStudent()">
         <mat-form-field appearance="outline">
           <mat-label>Name</mat-label>
-          <input matInput formControlName="name">
+          <input matInput formControlName="name" placeholder="Enter student's name">
+          <mat-error *ngIf="studentForm.get('name')?.hasError('required')">
+            Name is required
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Phone Number</mat-label>
+          <input matInput formControlName="phone" placeholder="Enter phone number">
+          <mat-icon matSuffix>phone</mat-icon>
+          <mat-error *ngIf="studentForm.get('phone')?.hasError('required')">
+            Phone number is required
+          </mat-error>
+          <mat-error *ngIf="studentForm.get('phone')?.hasError('invalidPhone')">
+            Please enter a valid phone number
+          </mat-error>
         </mat-form-field>
 
         <div class="form-actions">

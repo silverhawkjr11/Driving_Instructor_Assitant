@@ -1,8 +1,10 @@
 export interface Lesson {
   id?: string;
   date: Date;
-  duration: number;
+  duration: number; // Duration in minutes
   notes: string;
-  payment: number;
+  cost: number; // Cost of this lesson
+  isPaid: boolean; // Whether this lesson has been paid for
   status: 'scheduled' | 'completed' | 'cancelled';
+  createdAt?: Date;
 }
