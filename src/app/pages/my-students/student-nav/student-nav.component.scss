@@ -1,63 +1,78 @@
+// Add this to your my-students.component.scss
+
 .navigation-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 8px 16px;
-  width: 100%;
-  box-sizing: border-box;
-}
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 8px 16px;
+    border-radius: 8px;
 
-.student-nav {
-  display: flex;
-  gap: 8px;
-  flex: 1;
-  overflow-x: auto; /* Allow horizontal scrolling if needed */
-  scrollbar-width: thin; /* Firefox */
-  
-  /* Hide scrollbar but keep functionality */
-  &::-webkit-scrollbar {
-    height: 4px;
-  }
-  
-  &::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  
-  &::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 2px;
-  }
-  
-  &::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.3);
-  }
+    .search-field {
+        width: 200px;
+        flex-shrink: 0; // Prevent search field from shrinking
+        margin: 0;
 
-  button {
-    flex-shrink: 0; /* Prevent buttons from shrinking */
-    white-space: nowrap; /* Keep text on one line */
-    min-width: auto;
-    
-    &.active {
-      background-color: rgba(255, 255, 255, 0.1);
+        ::ng-deep .mat-mdc-form-field-wrapper {
+            padding-bottom: 0;
+            margin: 0;
+        }
+
+        ::ng-deep .mat-mdc-form-field-flex {
+            min-height: 40px;
+        }
     }
-  }
-}
 
-/* Alternative: If you prefer wrapping to multiple lines instead of scrolling */
-/*
-.student-nav {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  flex: 1;
+    .student-nav {
+        display: flex;
+        flex-wrap: nowrap; // Keep students on one line
+        overflow-x: auto; // Allow horizontal scrolling if needed
+        gap: 8px;
+        flex: 1; // Take up remaining space
+        align-items: center;
+        min-height: 40px;
+        margin: 0;
+        padding: 0 8px;
 
-  button {
-    flex-shrink: 0;
-    white-space: nowrap;
-    
-    &.active {
-      background-color: rgba(255, 255, 255, 0.1);
+        // Hide scrollbar but keep functionality
+        &::-webkit-scrollbar {
+            height: 3px;
+        }
+
+        &::-webkit-scrollbar-thumb {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+        }
+
+        button {
+            flex-shrink: 0; // Prevent buttons from shrinking
+            height: 36px;
+            line-height: 36px;
+            padding: 0 16px;
+            border-radius: 18px;
+            white-space: nowrap; // Keep text on one line
+
+            &.active {
+                background: rgba(255, 255, 255, 0.1);
+            }
+        }
+
+        .empty-message {
+            opacity: 0.7;
+            font-size: 0.9rem;
+            white-space: nowrap;
+        }
+
+        mat-spinner {
+            flex-shrink: 0;
+        }
     }
-  }
+
+    // Add button should stay on the same row
+    button[mat-mini-fab] {
+        flex-shrink: 0; // Prevent the + button from shrinking
+        width: 40px; // Fixed width
+        height: 40px; // Fixed height
+    }
 }
-*/
