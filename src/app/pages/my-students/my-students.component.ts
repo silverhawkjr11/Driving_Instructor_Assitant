@@ -48,6 +48,7 @@ import { Lesson } from '../../../models/lesson.model';
 import { Auth } from '@angular/fire/auth';
 import { TimestampToDatePipe } from '../../pipes/timestamp-to-date.pipe';
 import { FirestoreTimestampPipe } from '../../pipes/firestore-timestamp.pipe';
+import { LanguageSelectorComponent } from "../../language-selector/language-selector.component";
 
 @Component({
   standalone: true,
@@ -72,8 +73,9 @@ import { FirestoreTimestampPipe } from '../../pipes/firestore-timestamp.pipe';
     MatProgressSpinnerModule,
     TimestampToDatePipe,
     FirestoreTimestampPipe,
-    MatCheckboxModule
-  ],
+    MatCheckboxModule,
+    LanguageSelectorComponent
+],
   animations: [
     trigger('cardAnimation', [
       transition(':increment', [
