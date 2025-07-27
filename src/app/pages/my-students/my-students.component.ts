@@ -49,6 +49,7 @@ import { Auth } from '@angular/fire/auth';
 import { TimestampToDatePipe } from '../../pipes/timestamp-to-date.pipe';
 import { FirestoreTimestampPipe } from '../../pipes/firestore-timestamp.pipe';
 import { LanguageSelectorComponent } from "../../language-selector/language-selector.component";
+import { TranslatePipe } from "../../pipes/translate.pipe";
 
 @Component({
   standalone: true,
@@ -71,11 +72,11 @@ import { LanguageSelectorComponent } from "../../language-selector/language-sele
     MatIcon,
     HammerModule,
     MatProgressSpinnerModule,
-    TimestampToDatePipe,
-    FirestoreTimestampPipe,
+    // TimestampToDatePipe,
+    // FirestoreTimestampPipe,
     MatCheckboxModule,
-    LanguageSelectorComponent
-],
+    TranslatePipe
+  ],
   animations: [
     trigger('cardAnimation', [
       transition(':increment', [

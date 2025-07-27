@@ -1,16 +1,17 @@
-// src/app/pipes/translate.pipe.ts
+// Replace src/app/pipes/translate.pipe.ts with this:
+
 import { Pipe, PipeTransform, inject } from '@angular/core';
 import { TranslationService } from '../services/translation.service';
 
 @Pipe({
-    name: 'translate',
-    standalone: true,
-    pure: false // Make it impure so it updates when language changes
+  name: 'translate',
+  standalone: true,
+  pure: false // Make it impure so it updates when language changes
 })
 export class TranslatePipe implements PipeTransform {
-    private translationService = inject(TranslationService);
+  private translationService = inject(TranslationService);
 
-    transform(key: string, params?: { [key: string]: any }): string {
-        return this.translationService.translate(key, params);
-    }
+  transform(key: string, params?: { [key: string]: any }): string {
+    return this.translationService.translate(key, params);
+  }
 }

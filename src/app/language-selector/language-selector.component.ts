@@ -1,4 +1,5 @@
-// src/app/components/language-selector/language-selector.component.ts
+// Replace src/app/components/language-selector/language-selector.component.ts with this:
+
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
@@ -15,11 +16,11 @@ import { Language, TranslationService } from '../services/translation.service';
     <button mat-icon-button [matMenuTriggerFor]="languageMenu" class="language-btn">
       <span class="flag">{{ (currentLanguage$ | async)?.flag }}</span>
     </button>
-    
+
     <mat-menu #languageMenu="matMenu" class="language-menu">
       @for (language of supportedLanguages; track language.code) {
-        <button 
-          mat-menu-item 
+        <button
+          mat-menu-item
           (click)="selectLanguage(language)"
           [class.active]="(currentLanguage$ | async)?.code === language.code">
           <span class="flag">{{ language.flag }}</span>
