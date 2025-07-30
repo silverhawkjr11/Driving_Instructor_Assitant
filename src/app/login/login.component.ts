@@ -37,6 +37,10 @@ export class LoginComponent {
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]]
     });
+    if (this.authService.isLoggedIn$)
+    {
+        this.router.navigate(['/my-students']);
+    }
   }
   createForm() {
     this.loginForm = this.fb.group({
@@ -58,6 +62,16 @@ export class LoginComponent {
 
   tryLogin(value: { email: any; password: any; }) {
     this.authService.doLogin(value)
+      .then(res => {
+        this.router.navigate(['/my-students']);
+      }, err => {
+        console.log(err);
+        this.errorMessage = err.message;
+      })
+  }
+
+  tryRegister(value: { email: any; password: any; }) {
+    this.authService.doRegister(value)
       .then(res => {
         this.router.navigate(['/my-students']);
       }, err => {
