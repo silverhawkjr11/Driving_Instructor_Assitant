@@ -18,17 +18,43 @@
 
     <!-- Student Navigation Pills -->
     <div class="student-navigation">
-      @if (isLoading()) {
+      <!-- @if (isLoading()) { -->
       <div class="loading-state">
         <mat-spinner diameter="32"></mat-spinner>
         <div class="loading-text">Loading students...</div>
+      </div>
+<!-- src/app/pages/my-students/my-students.component.html -->
+<div class="container">
+  <!-- Student Navigation -->
+  <div class="navigation-section">
+    <!-- Top row: Search and Add Student button -->
+    <div class="navigation-top">
+      <mat-form-field appearance="outline" class="search-field">
+        <mat-label>{{'search_students' | translate}}</mat-label>
+        <input matInput [formControl]="searchControl" [placeholder]="'search_students' | translate"
+          (keydown.enter)="switchToFirstFilteredStudent()">
+        <mat-icon matSuffix>search</mat-icon>
+      </mat-form-field>
+
+      <button mat-raised-button class="add-student-btn" (click)="showAddStudentForm()">
+        <mat-icon>person_add</mat-icon>
+        {{'add_student' | translate}}
+      </button>
+    </div>
+
+    <!-- Student Navigation Pills -->
+    <div class="student-navigation">
+      @if (isLoading()) {
+      <div class="loading-state">
+        <mat-spinner diameter="32"></mat-spinner>
+        <div class="loading-text">{{'loading_students' | translate}}</div>
       </div>
       } @else {
       @if (filteredStudents() && filteredStudents()?.length) {
       <div class="students-grid">
         @for (student of filteredStudents(); track student.id) {
         <button class="student-pill" [class.active]="currentStudent()?.id === student.id"
-          (click)="setCurrentStudent(student)" [title]="student.phone || 'No phone set'">
+          (click)="setCurrentStudent(student)" [title]="student.phone || ('not_set' | translate)">
           {{ student.name }}
         </button>
         }
@@ -38,12 +64,12 @@
         <div class="empty-state">
           @if (searchControl.value) {
           <mat-icon>search_off</mat-icon>
-          <div class="empty-title">No matches found</div>
-          <div class="empty-subtitle">Try a different search term</div>
+          <div class="empty-title">{{'no_matches' | translate}}</div>
+          <div class="empty-subtitle">{{'try_different_search' | translate}}</div>
           } @else {
           <mat-icon>school</mat-icon>
-          <div class="empty-title">No students yet</div>
-          <div class="empty-subtitle">Click "Add Student" to get started</div>
+          <div class="empty-title">{{'no_students_yet' | translate}}</div>
+          <div class="empty-subtitle">{{'click_add_student' | translate}}</div>
           }
         </div>
       </div>
@@ -67,10 +93,10 @@
           <mat-card-title>{{ student.name }}</mat-card-title>
           <mat-card-subtitle>
             <div class="student-details">
-              <span><mat-icon>phone</mat-icon>{{ student.phone || 'Not set' }}</span>
-              <span><mat-icon>calendar_today</mat-icon>Started: {{ student.startDate | date:'shortDate' }}</span>
+              <span><mat-icon>phone</mat-icon>{{ student.phone || ('not_set' | translate) }}</span>
+              <span><mat-icon>calendar_today</mat-icon>{{'started' | translate}}: {{ student.startDate | date:'shortDate' }}</span>
               @if (student.lastLesson) {
-              <span><mat-icon>schedule</mat-icon>Last Lesson: {{ student.lastLesson | date:'shortDate' }}</span>
+              <span><mat-icon>schedule</mat-icon>{{'last_lesson' | translate}}: {{ student.lastLesson | date:'shortDate' }}</span>
               }
             </div>
           </mat-card-subtitle>
@@ -81,14 +107,13 @@
           <!-- Payment Status -->
           <div class="status-badge" [ngClass]="getPaymentStatusClass(student.paymentStatus)">
             <mat-icon>{{ getPaymentStatusIcon(student.paymentStatus) }}</mat-icon>
-            <span>{{ getPaymentStatusText(student.paymentStatus) }}</span>
+            <span>{{ getPaymentStatusText(student.paymentStatus) | translate }}</span>
           </div>
 
           <!-- Test Readiness -->
           <div class="status-badge" [ngClass]="student.isReadyForTest ? 'ready' : 'not-ready'">
             <mat-icon>{{ student.isReadyForTest ? 'check_circle' : 'schedule' }}</mat-icon>
-            <span>{{ student.isReadyForTest ? 'Ready for Test' : (30 - (student.lessonsCompleted || 0)) + ' more needed'
-              }}</span>
+            <span>{{ student.isReadyForTest ? ('ready_for_test' | translate) : (30 - (student.lessonsCompleted || 0)) + ' ' + ('more_needed' | translate) }}</span>
           </div>
         </div>
       </mat-card-header>
@@ -114,128 +139,126 @@
             </div>
             <div class="stat-info">
               <div class="stat-value">{{ (student.balance || 0) | currency:'USD':'symbol':'1.2-2' }}</div>
-              <div class="stat-label">Balance {{ (student.balance || 0) > 0 ? 'Owed' : (student.balance || 0) < 0
-                  ? 'Credit' : '' }}</div>
-              </div>
-            </div>
-
-            <div class="stat-card lessons-stat">
-              <div class="stat-icon">
-                <mat-icon>school</mat-icon>
-              </div>
-              <div class="stat-info">
-                <div class="stat-value">{{ student.lessonsCompleted || 0 }}</div>
-                <div class="stat-label">Lessons Completed</div>
-              </div>
-            </div>
-
-            <div class="stat-card progress-stat">
-              <div class="stat-icon">
-                <mat-icon>trending_up</mat-icon>
-              </div>
-              <div class="stat-info">
-                <div class="stat-value">{{ getTestProgressPercentage(student.lessonsCompleted || 0) }}%</div>
-                <div class="stat-label">Test Progress</div>
-              </div>
+              <div class="stat-label">{{'balance' | translate}} {{ (student.balance || 0) > 0 ? ('balance_owed' | translate) : (student.balance || 0) < 0 ? ('credit' | translate) : '' }}</div>
             </div>
           </div>
 
-          <!-- Quick Actions -->
-          <div class="quick-actions">
-            <button mat-stroked-button (click)="openPaymentDialog(student)">
-              <mat-icon>payment</mat-icon>
-              Record Payment
+          <div class="stat-card lessons-stat">
+            <div class="stat-icon">
+              <mat-icon>school</mat-icon>
+            </div>
+            <div class="stat-info">
+              <div class="stat-value">{{ student.lessonsCompleted || 0 }}</div>
+              <div class="stat-label">{{'lessons_completed' | translate}}</div>
+            </div>
+          </div>
+
+          <div class="stat-card progress-stat">
+            <div class="stat-icon">
+              <mat-icon>trending_up</mat-icon>
+            </div>
+            <div class="stat-info">
+              <div class="stat-value">{{ getTestProgressPercentage(student.lessonsCompleted || 0) }}%</div>
+              <div class="stat-label">{{'test_progress' | translate}}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="quick-actions">
+          <button mat-stroked-button (click)="openPaymentDialog(student)">
+            <mat-icon>payment</mat-icon>
+            {{'record_payment' | translate}}
+          </button>
+          <button mat-stroked-button (click)="openProgressDialog(student)">
+            <mat-icon>edit_note</mat-icon>
+            {{'update_progress' | translate}}
+          </button>
+        </div>
+
+        <!-- Progress Notes -->
+        @if (student.progressNotes) {
+        <div class="progress-notes">
+          <h4><mat-icon>note</mat-icon>{{'progress_notes' | translate}}</h4>
+          <p>{{ student.progressNotes }}</p>
+        </div>
+        }
+
+        <!-- Lessons Section -->
+        <div class="lessons-section">
+          <div class="section-header">
+            <h3>{{'recent_lessons' | translate}}</h3>
+            <button mat-icon-button (click)="refreshLessons()" [disabled]="isLoading()">
+              <mat-icon>refresh</mat-icon>
+              @if (isLoading()) {
+              <mat-spinner diameter="24"></mat-spinner>
+              }
             </button>
-            <button mat-stroked-button (click)="openProgressDialog(student)">
-              <mat-icon>edit_note</mat-icon>
-              Update Progress
-            </button>
           </div>
 
-          <!-- Progress Notes -->
-          @if (student.progressNotes) {
-          <div class="progress-notes">
-            <h4><mat-icon>note</mat-icon>Progress Notes</h4>
-            <p>{{ student.progressNotes }}</p>
-          </div>
-          }
-
-          <!-- Lessons Section -->
-          <div class="lessons-section">
-            <div class="section-header">
-              <h3>Recent Lessons</h3>
-              <button mat-icon-button (click)="refreshLessons()" [disabled]="isLoading()">
-                <mat-icon>refresh</mat-icon>
-                @if (isLoading()) {
-                <mat-spinner diameter="24"></mat-spinner>
-                }
+          @if (student.lessons && student.lessons.length > 0) {
+          <div class="lessons-list">
+            @for (lesson of student.lessons.slice(-5); track lesson.id || $index) {
+            <div class="lesson-item">
+              <div class="lesson-date">
+                <mat-icon>event</mat-icon>
+                {{ lesson.date | date:'shortDate' }}
+              </div>
+              <div class="lesson-duration">{{ lesson.duration }}min</div>
+              <div class="lesson-cost" [ngClass]="{'paid': lesson.isPaid, 'unpaid': !lesson.isPaid}">
+                {{ (lesson.cost || 0) | currency:'USD':'symbol':'1.2-2' }}
+                <mat-icon>{{ lesson.isPaid ? 'check_circle' : 'schedule' }}</mat-icon>
+              </div>
+              <div class="lesson-notes" *ngIf="lesson.notes">{{ lesson.notes }}</div>
+            </div>
+            }
+            @if (student.lessons.length > 5) {
+            <div class="show-more">
+              <button mat-button (click)="showAllLessons(student)">
+                {{'view_all' | translate}} {{ student.lessons.length }} {{'lessons' | translate}}
               </button>
             </div>
-
-            @if (student.lessons && student.lessons.length > 0) {
-            <div class="lessons-list">
-              @for (lesson of student.lessons.slice(-5); track lesson.id || $index) {
-              <div class="lesson-item">
-                <div class="lesson-date">
-                  <mat-icon>event</mat-icon>
-                  <!-- Fixed: Remove timestampToDate pipe, just use date pipe -->
-                  {{ lesson.date | date:'shortDate' }}
-                </div>
-                <div class="lesson-duration">{{ lesson.duration }}min</div>
-                <div class="lesson-cost" [ngClass]="{'paid': lesson.isPaid, 'unpaid': !lesson.isPaid}">
-                  {{ (lesson.cost || 0) | currency:'USD':'symbol':'1.2-2' }}
-                  <mat-icon>{{ lesson.isPaid ? 'check_circle' : 'schedule' }}</mat-icon>
-                </div>
-                <div class="lesson-notes" *ngIf="lesson.notes">{{ lesson.notes }}</div>
-              </div>
-              }
-              @if (student.lessons.length > 5) {
-              <div class="show-more">
-                <button mat-button (click)="showAllLessons(student)">
-                  View All {{ student.lessons.length }} Lessons
-                </button>
-              </div>
-              }
-            </div>
-            } @else {
-            <p class="no-lessons">No lessons recorded yet</p>
             }
+          </div>
+          } @else {
+          <p class="no-lessons">{{'no_lessons' | translate}}</p>
+          }
 
-            <!-- Add Lesson Form -->
-            <form [formGroup]="lessonForm" (ngSubmit)="addLesson(student.id!)" class="lesson-form">
-              <h4>Add New Lesson</h4>
-              <div class="form-row">
-                <mat-form-field appearance="outline">
-                  <mat-label>Date</mat-label>
-                  <input matInput [matDatepicker]="picker" formControlName="date">
-                  <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
-                  <mat-datepicker #picker></mat-datepicker>
-                </mat-form-field>
-
-                <mat-form-field appearance="outline">
-                  <mat-label>Duration (minutes)</mat-label>
-                  <input matInput type="number" formControlName="duration">
-                </mat-form-field>
-
-                <mat-form-field appearance="outline">
-                  <mat-label>Cost</mat-label>
-                  <input matInput type="number" formControlName="cost" step="0.01">
-                </mat-form-field>
-              </div>
-
-              <mat-form-field appearance="outline" class="notes-field">
-                <mat-label>Notes</mat-label>
-                <textarea matInput formControlName="notes" rows="2"></textarea>
+          <!-- Add Lesson Form -->
+          <form [formGroup]="lessonForm" (ngSubmit)="addLesson(student.id!)" class="lesson-form">
+            <h4>{{'add_lesson' | translate}}</h4>
+            <div class="form-row">
+              <mat-form-field appearance="outline">
+                <mat-label>{{'date' | translate}}</mat-label>
+                <input matInput [matDatepicker]="picker" formControlName="date">
+                <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+                <mat-datepicker #picker></mat-datepicker>
               </mat-form-field>
 
-              <div class="form-actions">
-                <mat-checkbox formControlName="isPaid">Mark as Paid</mat-checkbox>
-                <button mat-raised-button color="primary" type="submit" [disabled]="!lessonForm.valid">
-                  Add Lesson
-                </button>
-              </div>
-            </form>
-          </div>
+              <mat-form-field appearance="outline">
+                <mat-label>{{'duration_minutes' | translate}}</mat-label>
+                <input matInput type="number" formControlName="duration">
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>{{'cost' | translate}}</mat-label>
+                <input matInput type="number" formControlName="cost" step="0.01">
+              </mat-form-field>
+            </div>
+
+            <mat-form-field appearance="outline" class="notes-field">
+              <mat-label>{{'notes' | translate}}</mat-label>
+              <textarea matInput formControlName="notes" rows="2"></textarea>
+            </mat-form-field>
+
+            <div class="form-actions">
+              <mat-checkbox formControlName="isPaid">{{'mark_as_paid' | translate}}</mat-checkbox>
+              <button mat-raised-button color="primary" type="submit" [disabled]="!lessonForm.valid">
+                {{'add_lesson' | translate}}
+              </button>
+            </div>
+          </form>
+        </div>
       </mat-card-content>
     </mat-card>
   </div>
@@ -245,32 +268,32 @@
   @if (showForm()) {
   <div class="overlay" (click)="hideAddStudentForm()">
     <div class="dialog-container" (click)="$event.stopPropagation()">
-      <h2>Add New Student</h2>
+      <h2>{{'add_student' | translate}}</h2>
       <form [formGroup]="studentForm" (ngSubmit)="addStudent()">
         <mat-form-field appearance="outline">
-          <mat-label>Name</mat-label>
-          <input matInput formControlName="name" placeholder="Enter student's name">
+          <mat-label>{{'name' | translate}}</mat-label>
+          <input matInput formControlName="name" [placeholder]="'student_name' | translate">
           <mat-error *ngIf="studentForm.get('name')?.hasError('required')">
-            Name is required
+            {{'name_required' | translate}}
           </mat-error>
         </mat-form-field>
 
         <mat-form-field appearance="outline">
-          <mat-label>Phone Number</mat-label>
-          <input matInput formControlName="phone" placeholder="Enter phone number">
+          <mat-label>{{'phone_number' | translate}}</mat-label>
+          <input matInput formControlName="phone" [placeholder]="'phone_number' | translate">
           <mat-icon matSuffix>phone</mat-icon>
           <mat-error *ngIf="studentForm.get('phone')?.hasError('required')">
-            Phone number is required
+            {{'phone_required' | translate}}
           </mat-error>
           <mat-error *ngIf="studentForm.get('phone')?.hasError('invalidPhone')">
-            Please enter a valid phone number
+            {{'valid_phone' | translate}}
           </mat-error>
         </mat-form-field>
 
         <div class="form-actions">
-          <button mat-button type="button" (click)="hideAddStudentForm()">Cancel</button>
+          <button mat-button type="button" (click)="hideAddStudentForm()">{{'cancel' | translate}}</button>
           <button mat-raised-button color="primary" type="submit" [disabled]="!studentForm.valid">
-            Add Student
+            {{'add_student' | translate}}
           </button>
         </div>
       </form>

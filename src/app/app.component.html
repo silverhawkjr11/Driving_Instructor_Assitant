@@ -1,19 +1,59 @@
+<!-- src/app/app.component.html -->
 <ng-container *ngIf="authService.isLoggedIn$ | async; else loginTemplate">
   <!-- <app-header></app-header> -->
   <mat-drawer-container class="example-container" autosize>
     <mat-drawer #drawer mode="side" [opened]="true" (swipeleft)="drawer.close()" (swiperight)="drawer.open()">
-      <p><a mat-button routerLink="/my-students" routerLinkActive="active">My Students</a></p>
-      <p><a mat-button routerLink="/schedule" routerLinkActive="active">Schedule</a></p>
-      <p><a mat-button routerLink="/settings" routerLinkActive="active">Settings</a></p>
+      <div class="sidebar-content">
+        <div class="sidebar-header">
+          <mat-icon class="sidebar-icon">school</mat-icon>
+          <h3>{{'driving_instructor_app' | translate}}</h3>
+        </div>
+
+        <nav class="sidebar-nav">
+          <a mat-button routerLink="/my-students" routerLinkActive="active" class="nav-link">
+            <mat-icon>people</mat-icon>
+            <span>{{'my_students' | translate}}</span>
+          </a>
+          <a mat-button routerLink="/schedule" routerLinkActive="active" class="nav-link">
+            <mat-icon>schedule</mat-icon>
+            <span>{{'schedule' | translate}}</span>
+          </a>
+          <a mat-button routerLink="/payments" routerLinkActive="active" class="nav-link">
+            <mat-icon>payment</mat-icon>
+            <span>{{'payments' | translate}}</span>
+          </a>
+          <a mat-button routerLink="/settings" routerLinkActive="active" class="nav-link">
+            <mat-icon>settings</mat-icon>
+            <span>{{'settings' | translate}}</span>
+          </a>
+        </nav>
+
+        <div class="sidebar-footer">
+          <!-- <button mat-button (click)="authService.logout()" class="logout-btn"> -->
+            <mat-icon>logout</mat-icon>
+            <span>{{'logout' | translate}}</span>
+          <!-- </button> -->
+        </div>
+      </div>
     </mat-drawer>
+
     <mat-drawer-content>
-      <mat-toolbar color="primary">
-        <button mat-icon-button (click)="drawer.toggle()">
-          <mat-icon>menu</mat-icon>
-        </button>
-        <span>Driving Instructor Assistant</span>
+      <mat-toolbar color="primary" class="app-toolbar">
+        <div class="toolbar-left">
+          <button mat-icon-button (click)="drawer.toggle()" class="menu-toggle">
+            <mat-icon>menu</mat-icon>
+          </button>
+          <span class="toolbar-title">{{'driving_instructor_app' | translate}}</span>
+        </div>
+
+        <div class="toolbar-right">
+          <app-language-selector></app-language-selector>
+        </div>
       </mat-toolbar>
-      <router-outlet></router-outlet>
+
+      <main class="main-content">
+        <router-outlet></router-outlet>
+      </main>
     </mat-drawer-content>
   </mat-drawer-container>
 </ng-container>

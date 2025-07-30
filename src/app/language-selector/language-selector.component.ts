@@ -1,11 +1,9 @@
-// Replace src/app/components/language-selector/language-selector.component.ts with this:
-
-import { Component, inject } from '@angular/core';
+// src/app/language-selector/language-selector.component.ts
+import { Component, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatIconModule } from '@angular/material/icon';
-import { Observable } from 'rxjs';
 import { Language, TranslationService } from '../services/translation.service';
 
 @Component({
@@ -14,7 +12,7 @@ import { Language, TranslationService } from '../services/translation.service';
   imports: [CommonModule, MatButtonModule, MatMenuModule, MatIconModule],
   template: `
     <button mat-icon-button [matMenuTriggerFor]="languageMenu" class="language-btn">
-      <span class="flag">{{ (currentLanguage$ | async)?.flag }}</span>
+      <span class="flag">{{ currentLanguage().flag }}</span>
     </button>
 
     <mat-menu #languageMenu="matMenu" class="language-menu">
@@ -22,10 +20,10 @@ import { Language, TranslationService } from '../services/translation.service';
         <button
           mat-menu-item
           (click)="selectLanguage(language)"
-          [class.active]="(currentLanguage$ | async)?.code === language.code">
+          [class.active]="currentLanguage().code === language.code">
           <span class="flag">{{ language.flag }}</span>
           <span class="language-name">{{ language.nativeName }}</span>
-          @if ((currentLanguage$ | async)?.code === language.code) {
+          @if (currentLanguage().code === language.code) {
             <mat-icon class="check-icon">check</mat-icon>
           }
         </button>
@@ -105,7 +103,8 @@ import { Language, TranslationService } from '../services/translation.service';
 export class LanguageSelectorComponent {
   private translationService = inject(TranslationService);
 
-  currentLanguage$: Observable<Language> = this.translationService.currentLanguage$;
+  // Use computed instead of Observable
+  currentLanguage = computed(() => this.translationService.currentLanguage$());
   supportedLanguages = this.translationService.supportedLanguages;
 
   selectLanguage(language: Language): void {

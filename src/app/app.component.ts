@@ -1,3 +1,4 @@
+// src/app/app.component.ts
 import { Component } from '@angular/core';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -8,6 +9,9 @@ import { HeaderComponent } from './header/header.component';
 import { ReactiveFormsModule } from '@angular/forms';
 import { AuthService } from './core/auth.service';
 import { CommonModule } from '@angular/common';
+import { LanguageSelectorComponent } from "./language-selector/language-selector.component";
+import { TranslatePipe } from './pipes/translate.pipe';
+
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
@@ -21,11 +25,12 @@ import { CommonModule } from '@angular/common';
     RouterModule,
     HeaderComponent,
     ReactiveFormsModule,
-    CommonModule
+    CommonModule,
+    LanguageSelectorComponent,
+    TranslatePipe
   ]
 })
 export class AppComponent {
   title = 'frontend';
-
   constructor(public authService: AuthService) { }
 }
