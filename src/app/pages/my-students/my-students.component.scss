@@ -1,70 +1,782 @@
+// Complete my-students.component.scss - Replace entire file with this
+
 .container {
   padding: 16px;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
-.navigation-header {
+.navigation-section {
+  margin-bottom: 24px;
+}
+
+// ===== NAVIGATION STYLES (Beautiful Pills) =====
+// Top row with search and add button
+.navigation-top {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
   gap: 16px;
-  margin-bottom: 20px;
-  background: rgba(255, 255, 255, 0.05);
-  padding: 8px 16px;
-  border-radius: 8px;
 
   .search-field {
-    width: 200px;
+    flex: 1;
+    max-width: 300px;
     margin: 0;
 
     ::ng-deep .mat-mdc-form-field-wrapper {
       padding-bottom: 0;
-      margin: 0;
     }
 
     ::ng-deep .mat-mdc-form-field-flex {
-      min-height: 40px;
+      min-height: 48px;
+    }
+
+    ::ng-deep .mat-mdc-form-field-outline {
+      border-radius: 24px;
     }
   }
 
-  .student-nav {
+  .add-student-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 25px;
+    padding: 12px 24px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    transition: all 0.3s ease;
+    border: none;
+    min-width: 140px;
+    height: 48px;
+
+    &:hover {
+      background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+      transform: translateY(-2px);
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+
+    mat-icon {
+      margin-right: 8px;
+      font-size: 18px;
+    }
+  }
+}
+
+// Student navigation pills - wrap to multiple lines
+.student-navigation {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 16px;
+  backdrop-filter: blur(10px);
+
+  .students-grid {
     display: flex;
-    flex-wrap: nowrap;
-    overflow-x: auto;
+    flex-wrap: wrap;
     gap: 8px;
-    flex: 1;
-    align-items: center;
-    min-height: 40px;
-    margin: 0;
-    padding: 0 8px;
+    justify-content: flex-start;
 
-    button {
-      flex-shrink: 0;
-      height: 36px;
-      line-height: 36px;
-      padding: 0 16px;
-      border-radius: 18px;
-      white-space: nowrap;
+    &.empty {
+      justify-content: center;
+      padding: 32px;
+    }
+  }
 
-      &.active {
-        background: rgba(255, 255, 255, 0.1);
+  .student-pill {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 8px 16px;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    white-space: nowrap;
+    position: relative;
+    overflow: hidden;
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+      transition: left 0.5s ease;
+    }
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.2);
+      color: white;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+
+      &::before {
+        left: 100%;
       }
     }
 
-    .empty-message {
-      opacity: 0.7;
-      font-size: 0.9rem;
+    &.active {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-color: #667eea;
+      color: white;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+      transform: translateY(-1px);
+
+      &::before {
+        display: none;
+      }
     }
 
-    &::-webkit-scrollbar {
-      height: 3px;
-    }
-
-    &::-webkit-scrollbar-thumb {
-      background-color: rgba(255, 255, 255, 0.2);
-      border-radius: 2px;
+    &:active {
+      transform: translateY(0);
     }
   }
 
-  button[mat-mini-fab] {
-    flex-shrink: 0;
+  .empty-state {
+    text-align: center;
+    color: rgba(255, 255, 255, 0.5);
+
+    mat-icon {
+      font-size: 48px;
+      width: 48px;
+      height: 48px;
+      margin-bottom: 16px;
+      opacity: 0.5;
+    }
+
+    .empty-title {
+      font-size: 18px;
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+
+    .empty-subtitle {
+      font-size: 14px;
+      opacity: 0.7;
+    }
+  }
+
+  .loading-state {
+    text-align: center;
+    padding: 24px;
+
+    mat-spinner {
+      margin: 0 auto 16px;
+    }
+
+    .loading-text {
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 14px;
+    }
+  }
+}
+
+// ===== STUDENT CARD STYLES (Improved Spacing) =====
+.student-card-container {
+  margin-top: 24px;
+}
+
+.student-card {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  overflow: hidden;
+
+  mat-card-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    padding: 24px 24px 16px 24px;
+
+    .student-avatar {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .default-avatar {
+        font-size: 32px;
+        color: rgba(255, 255, 255, 0.6);
+      }
+    }
+
+    .student-header-info {
+      flex: 1;
+      min-width: 0;
+
+      mat-card-title {
+        color: white;
+        margin: 0 0 12px 0;
+        font-size: 24px;
+        font-weight: 600;
+      }
+
+      .student-details {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+
+        span {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          color: rgba(255, 255, 255, 0.7);
+          font-size: 14px;
+
+          mat-icon {
+            font-size: 16px;
+            width: 16px;
+            height: 16px;
+            color: rgba(255, 255, 255, 0.5);
+          }
+        }
+      }
+    }
+
+    .status-badges {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+  }
+
+  mat-card-content {
+    padding: 0 24px 24px 24px;
+  }
+}
+
+.status-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 16px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+
+  &.status-paid {
+    background: rgba(76, 175, 80, 0.2);
+    color: #4caf50;
+    border: 1px solid rgba(76, 175, 80, 0.3);
+  }
+
+  &.status-owes {
+    background: rgba(255, 193, 7, 0.2);
+    color: #ffc107;
+    border: 1px solid rgba(255, 193, 7, 0.3);
+  }
+
+  &.status-overdue {
+    background: rgba(244, 67, 54, 0.2);
+    color: #f44336;
+    border: 1px solid rgba(244, 67, 54, 0.3);
+  }
+
+  &.ready {
+    background: rgba(76, 175, 80, 0.2);
+    color: #4caf50;
+    border: 1px solid rgba(76, 175, 80, 0.3);
+  }
+
+  &.not-ready {
+    background: rgba(158, 158, 158, 0.2);
+    color: #9e9e9e;
+    border: 1px solid rgba(158, 158, 158, 0.3);
+  }
+
+  mat-icon {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+  }
+}
+
+// Card navigation
+.card-navigation {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 16px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: 24px;
+
+  button {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+
+    mat-icon {
+      font-size: 20px;
+    }
+  }
+
+  .student-counter {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 14px;
+    font-weight: 500;
+    min-width: 60px;
+    text-align: center;
+  }
+}
+
+// Stats cards
+.student-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+
+  .stat-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.08);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    &.warning {
+      border-color: rgba(244, 67, 54, 0.5);
+      background: rgba(244, 67, 54, 0.1);
+
+      .stat-value {
+        color: #f44336;
+      }
+    }
+
+    .stat-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 48px;
+      height: 48px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+
+      mat-icon {
+        font-size: 24px;
+        color: rgba(255, 255, 255, 0.8);
+      }
+    }
+
+    .stat-info {
+      flex: 1;
+      min-width: 0;
+
+      .stat-value {
+        font-size: 20px;
+        font-weight: 700;
+        color: white;
+        line-height: 1.2;
+        margin-bottom: 4px;
+      }
+
+      .stat-label {
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.6);
+        line-height: 1.2;
+        text-transform: uppercase;
+        font-weight: 500;
+        letter-spacing: 0.5px;
+      }
+    }
+  }
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}
+
+// Quick actions
+.quick-actions {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+
+  button {
+    flex: 1;
+    height: 48px;
+    border-radius: 12px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+
+    &:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    mat-icon {
+      margin-right: 8px;
+      font-size: 18px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 12px;
+  }
+}
+
+// Progress notes
+.progress-notes {
+  margin-bottom: 24px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  border-left: 4px solid #4caf50;
+
+  h4 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 12px 0;
+    color: white;
+    font-size: 16px;
+    font-weight: 600;
+
+    mat-icon {
+      font-size: 18px;
+      color: #4caf50;
+    }
+  }
+
+  p {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+}
+
+// Lessons section
+.lessons-section {
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+
+    h3 {
+      color: white;
+      margin: 0;
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    button {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+    }
+  }
+
+  .lessons-list {
+    margin-bottom: 24px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+    padding: 16px;
+  }
+
+  .lesson-item {
+    display: grid;
+    grid-template-columns: auto 80px 100px;
+    gap: 16px;
+    align-items: center;
+    padding: 16px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    .lesson-date {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 14px;
+      font-weight: 500;
+
+      mat-icon {
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+        color: rgba(255, 255, 255, 0.5);
+      }
+    }
+
+    .lesson-duration {
+      text-align: center;
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 13px;
+      font-weight: 500;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 4px 8px;
+      border-radius: 8px;
+    }
+
+    .lesson-cost {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 6px 10px;
+      border-radius: 8px;
+
+      &.paid {
+        color: #4caf50;
+        background: rgba(76, 175, 80, 0.1);
+
+        mat-icon {
+          color: #4caf50;
+        }
+      }
+
+      &.unpaid {
+        color: #ffc107;
+        background: rgba(255, 193, 7, 0.1);
+
+        mat-icon {
+          color: #ffc107;
+        }
+      }
+
+      mat-icon {
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+      }
+    }
+
+    .lesson-notes {
+      grid-column: 1 / -1;
+      margin-top: 8px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      color: rgba(255, 255, 255, 0.6);
+      font-size: 13px;
+      font-style: italic;
+      line-height: 1.4;
+    }
+  }
+
+  .show-more {
+    text-align: center;
+    margin-top: 16px;
+  }
+
+  .no-lessons {
+    text-align: center;
+    color: rgba(255, 255, 255, 0.5);
+    font-style: italic;
+    padding: 40px;
+    margin: 16px 0;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+    border: 2px dashed rgba(255, 255, 255, 0.1);
+  }
+}
+
+// Lesson form
+.lesson-form {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 24px;
+  border-radius: 16px;
+  margin-top: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+
+  h4 {
+    color: white;
+    margin: 0 0 20px 0;
+    font-size: 18px;
+    font-weight: 600;
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 120px 120px;
+    gap: 16px;
+    margin-bottom: 16px;
+
+    @media (max-width: 768px) {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+  }
+
+  .notes-field {
+    width: 100%;
+    margin-bottom: 16px;
+  }
+
+  .form-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    mat-checkbox {
+      color: rgba(255, 255, 255, 0.8);
+
+      ::ng-deep .mdc-checkbox {
+        &__background {
+          border-color: rgba(255, 255, 255, 0.3);
+        }
+      }
+    }
+
+    button {
+      height: 48px;
+      border-radius: 12px;
+      font-weight: 600;
+      min-width: 120px;
+    }
+  }
+}
+
+// ===== POPUP DIALOG STYLES =====
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.dialog-container {
+  background: #1e1e1e;
+  border-radius: 20px;
+  padding: 32px;
+  min-width: 400px;
+  max-width: 90vw;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  animation: slideUp 0.3s ease;
+
+  h2 {
+    color: white;
+    margin: 0 0 24px 0;
+    font-size: 24px;
+    font-weight: 600;
+    text-align: center;
+  }
+
+  form {
+    mat-form-field {
+      width: 100%;
+      margin-bottom: 16px;
+
+      ::ng-deep .mat-mdc-form-field-outline {
+        border-radius: 12px;
+      }
+    }
+  }
+
+  .form-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+
+    button {
+      flex: 1;
+      height: 48px;
+      border-radius: 12px;
+      font-weight: 500;
+
+      &[color="primary"] {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+
+        &:hover {
+          box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+      }
+    }
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .navigation-top {
+    flex-direction: column;
+    align-items: stretch;
+
+    .search-field {
+      max-width: none;
+      margin-bottom: 12px;
+    }
+
+    .add-student-btn {
+      align-self: center;
+    }
+  }
+
+  .students-grid {
+    justify-content: center !important;
+  }
+
+  .dialog-container {
+    min-width: 320px;
+    margin: 16px;
   }
 }
