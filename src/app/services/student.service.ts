@@ -19,7 +19,7 @@ import {
   docData
 } from '@angular/fire/firestore';
 import { Auth } from '@angular/fire/auth';
-import { first, from, map, Observable, of, switchMap, filter } from 'rxjs';
+import { first, from, map, Observable, of, switchMap, filter, startWith, catchError } from 'rxjs';
 import { Student } from '../../models/student.model';
 import { Lesson } from '../../models/lesson.model';
 import { authState } from '@angular/fire/auth';
@@ -32,58 +32,107 @@ export class StudentService {
   private auth: Auth = inject(Auth);
 
   getStudents(): Observable<Student[]> {
-    // Wait for authentication state and only proceed when user is authenticated
+    console.log('StudentService: getStudents() called'); // Debug log
+    
+    // Wait for authentication state and handle both authenticated and non-authenticated states
     return authState(this.auth).pipe(
-      filter(user => !!user), // Only proceed when user is authenticated
+      startWith(this.auth.currentUser), // Start with current user if already authenticated
       switchMap(user => {
+        console.log('Auth state changed, user:', user?.uid); // Debug log
+        
         if (!user?.uid) {
+          console.log('No authenticated user, returning empty array');
           return of([]); // Return empty array if no user
         }
         
-        const studentsRef = collection(this.firestore, 'students');
-        const q = query(studentsRef, where('instructorId', '==', user.uid));
-        
-        return collectionData(q, { idField: 'id' }).pipe(
-          map(students => students.map(student => ({
-            ...student,
-            // Convert Firestore Timestamps to Dates
-            startDate: student['startDate'] instanceof Timestamp ? 
-              student['startDate'].toDate() : 
-              student['startDate'],
-            lastLesson: student['lastLesson'] instanceof Timestamp ? 
-              student['lastLesson'].toDate() : 
-              student['lastLesson'],
-            lastPaymentDate: student['lastPaymentDate'] instanceof Timestamp ? 
-              student['lastPaymentDate'].toDate() : 
-              student['lastPaymentDate'],
-            createdAt: student['createdAt'] instanceof Timestamp ? 
-              student['createdAt'].toDate() : 
-              student['createdAt']
-          }) as Student))
-        );
+        try {
+          const studentsRef = collection(this.firestore, 'students');
+          const q = query(studentsRef, where('instructorId', '==', user.uid));
+          
+          return collectionData(q, { idField: 'id' }).pipe(
+            map(students => {
+              console.log('Raw students from Firestore:', students); // Debug log
+              
+              return students.map(student => ({
+                ...student,
+                // Convert Firestore Timestamps to Dates
+                startDate: student['startDate'] instanceof Timestamp ? 
+                  student['startDate'].toDate() : 
+                  student['startDate'] ? new Date(student['startDate']) : new Date(),
+                lastLesson: student['lastLesson'] instanceof Timestamp ? 
+                  student['lastLesson'].toDate() : 
+                  student['lastLesson'] ? new Date(student['lastLesson']) : null,
+                lastPaymentDate: student['lastPaymentDate'] instanceof Timestamp ? 
+                  student['lastPaymentDate'].toDate() : 
+                  student['lastPaymentDate'] ? new Date(student['lastPaymentDate']) : null,
+                createdAt: student['createdAt'] instanceof Timestamp ? 
+                  student['createdAt'].toDate() : 
+                  student['createdAt'] ? new Date(student['createdAt']) : new Date(),
+                // Ensure required fields have default values
+                lessonsCompleted: student['lessonsCompleted'] || 0,
+                balance: student['balance'] || 0,
+                paymentStatus: student['paymentStatus'] || 'PAID_UP',
+                progressNotes: student['progressNotes'] || '',
+                isReadyForTest: student['isReadyForTest'] || false,
+                lessons: student['lessons'] || []
+              }) as Student);
+            }),
+            catchError(error => {
+              console.error('Error in students query:', error);
+              return of([]);
+            })
+          );
+        } catch (error) {
+          console.error('Error setting up students query:', error);
+          return of([]);
+        }
+      }),
+      catchError(error => {
+        console.error('Error in authState switchMap:', error);
+        return of([]);
       })
     );
   }
 
   getStudentLessons(studentId: string): Observable<Lesson[]> {
     if (!studentId) {
+      console.log('No studentId provided, returning empty array');
       return of([]); // Return empty array for invalid studentId
     }
 
-    const lessonsRef = collection(this.firestore, `students/${studentId}/lessons`);
-    const q = query(lessonsRef, orderBy('date', 'desc'));
+    try {
+      const lessonsRef = collection(this.firestore, `students/${studentId}/lessons`);
+      const q = query(lessonsRef, orderBy('date', 'desc'));
 
-    return collectionData(q, { idField: 'id' }).pipe(
-      map(lessons => lessons.map(lesson => ({
-        ...lesson,
-        date: lesson['date'] instanceof Timestamp ?
-          lesson['date'].toDate() :
-          new Date(lesson['date']), // Ensure it's always a Date object
-        createdAt: lesson['createdAt'] instanceof Timestamp ?
-          lesson['createdAt'].toDate() :
-          lesson['createdAt']
-      }) as Lesson))
-    );
+      return collectionData(q, { idField: 'id' }).pipe(
+        map(lessons => {
+          console.log(`Lessons for student ${studentId}:`, lessons); // Debug log
+          
+          return lessons.map(lesson => ({
+            ...lesson,
+            date: lesson['date'] instanceof Timestamp ?
+              lesson['date'].toDate() :
+              new Date(lesson['date']), // Ensure it's always a Date object
+            createdAt: lesson['createdAt'] instanceof Timestamp ?
+              lesson['createdAt'].toDate() :
+              lesson['createdAt'] ? new Date(lesson['createdAt']) : new Date(),
+            // Ensure required fields have default values
+            duration: lesson['duration'] || 0,
+            cost: lesson['cost'] || 0,
+            notes: lesson['notes'] || '',
+            isPaid: lesson['isPaid'] || false,
+            status: lesson['status'] || 'completed'
+          }) as Lesson);
+        }),
+        catchError(error => {
+          console.error(`Error loading lessons for student ${studentId}:`, error);
+          return of([]);
+        })
+      );
+    } catch (error) {
+      console.error(`Error setting up lessons query for student ${studentId}:`, error);
+      return of([]);
+    }
   }
 
   async addStudent(student: Partial<Student>): Promise<DocumentReference<DocumentData>> {
@@ -215,6 +264,10 @@ export class StudentService {
             student['createdAt'].toDate() : 
             student['createdAt']
         } as Student;
+      }),
+      catchError(error => {
+        console.error(`Error loading student ${studentId}:`, error);
+        return of(undefined);
       })
     );
   }

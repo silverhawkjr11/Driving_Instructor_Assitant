@@ -27,7 +27,7 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import Fuse from 'fuse.js';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { catchError, finalize, first, map, of, Subject, Subscription, take, takeUntil, tap, debounceTime } from 'rxjs';
+import { catchError, finalize, first, map, of, Subject, Subscription, take, takeUntil, tap, debounceTime, distinctUntilChanged } from 'rxjs';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 
 import Hammer from 'hammerjs';
@@ -115,6 +115,7 @@ export class MyStudentsComponent implements OnDestroy {
   private destroy$ = new Subject<void>();
   private currentSubscription?: Subscription;
   private studentsSubscription?: Subscription;
+  private isInitialized = false; // Add flag to prevent re-initialization
 
   isLoading = signal(true);
   searchControl = new FormControl('');
@@ -141,62 +142,98 @@ export class MyStudentsComponent implements OnDestroy {
 
   constructor(@Inject(PLATFORM_ID) platformId: Object) {
     this.isBrowser = isPlatformBrowser(platformId);
-    this.initializeStudents();
-    this.initializeSearch();
+    
+    // Only initialize once
+    if (!this.isInitialized) {
+      this.isInitialized = true;
+      console.log('MyStudentsComponent: Initializing...'); // Debug log
+      this.initializeStudents();
+      this.initializeSearch();
+    }
   }
 
   private initializeStudents() {
-    // Prevent multiple subscriptions by checking if one already exists
+    // Cleanup any existing subscription
     if (this.studentsSubscription) {
       this.studentsSubscription.unsubscribe();
     }
 
+    // Start with loading state
+    this.isLoading.set(true);
+
     this.studentsSubscription = this.studentService.getStudents().pipe(
       takeUntil(this.destroy$),
+      distinctUntilChanged((prev, curr) => {
+        // Compare arrays to prevent unnecessary updates
+        return JSON.stringify(prev) === JSON.stringify(curr);
+      }),
       catchError(error => {
         console.error('Error loading students:', error);
         this.isLoading.set(false);
         return of([]);
+      }),
+      finalize(() => {
+        // Always set loading to false when stream completes or errors
+        this.isLoading.set(false);
       })
-    ).subscribe(students => {
-      try {
-        if (students) {
-          const studentsWithLessons = students.map((student) => ({ ...student, lessons: [] }));
+    ).subscribe({
+      next: (students) => {
+        console.log('Students received:', students); // Debug log
+        try {
+          // Always process the data, even if it's an empty array
+          const studentsArray = Array.isArray(students) ? students : [];
+          const studentsWithLessons = studentsArray.map((student) => ({ 
+            ...student, 
+            lessons: student.lessons || [] // Use existing lessons if available
+          }));
           
-          // Only update if the data has actually changed
-          const currentStudentsJson = JSON.stringify(this.students());
-          const newStudentsJson = JSON.stringify(studentsWithLessons);
+          console.log('Processed students:', studentsWithLessons); // Debug log
           
-          if (currentStudentsJson !== newStudentsJson) {
-            this.students.set(studentsWithLessons);
-            this.filteredStudents.set(studentsWithLessons);
+          // Always update the students, even if empty
+          this.students.set(studentsWithLessons);
+          this.filteredStudents.set(studentsWithLessons);
 
-            // Initialize Fuse.js only once or when students change
-            this.fuse = new Fuse(studentsWithLessons, {
-              keys: ['name'],
-              threshold: 0.3,
-              location: 0,
-              distance: 100,
-            });
+          // Initialize Fuse.js
+          this.fuse = new Fuse(studentsWithLessons, {
+            keys: ['name'],
+            threshold: 0.3,
+            location: 0,
+            distance: 100,
+          });
 
-            // Load lessons for first student only if we don't have a current student
-            if (studentsWithLessons.length > 0 && studentsWithLessons[0].id && this.currentStudentIndex() === 0) {
-              this.loadStudentLessons(studentsWithLessons[0].id);
+          // Load lessons for current student only if we have students
+          if (studentsWithLessons.length > 0) {
+            const currentIndex = this.currentStudentIndex();
+            const validIndex = Math.min(currentIndex, studentsWithLessons.length - 1);
+            
+            if (currentIndex !== validIndex) {
+              this.currentStudentIndex.set(validIndex);
             }
+            
+            const currentStudent = studentsWithLessons[validIndex];
+            if (currentStudent?.id && !currentStudent.lessons?.length) {
+              this.loadStudentLessons(currentStudent.id);
+            }
+          } else {
+            // Reset current student index if no students
+            this.currentStudentIndex.set(0);
           }
+        } catch (error) {
+          console.error('Error processing students data:', error);
         }
-      } catch (error) {
-        console.error('Error processing students data:', error);
-      } finally {
+      },
+      error: (error) => {
+        console.error('Students subscription error:', error);
         this.isLoading.set(false);
       }
     });
   }
 
   private initializeSearch() {
-    // Add debounce to prevent excessive filtering
+    // Add debounce and distinctUntilChanged to prevent excessive filtering
     this.searchControl.valueChanges.pipe(
-      debounceTime(300), // Wait 300ms after user stops typing
+      debounceTime(300),
+      distinctUntilChanged(),
       takeUntil(this.destroy$)
     ).subscribe(searchTerm => {
       this.filterStudents(searchTerm || '');
@@ -232,7 +269,7 @@ export class MyStudentsComponent implements OnDestroy {
     const mainIndex = this.students().findIndex(s => s.id === student.id);
     if (mainIndex !== -1 && mainIndex !== this.currentStudentIndex()) {
       this.currentStudentIndex.set(mainIndex);
-      if (student.id) {
+      if (student.id && (!student.lessons || student.lessons.length === 0)) {
         this.loadStudentLessons(student.id);
       }
     }
@@ -244,7 +281,7 @@ export class MyStudentsComponent implements OnDestroy {
       const nextIndex = this.currentStudentIndex() + 1;
       this.currentStudentIndex.set(nextIndex);
       const nextStudent = students[nextIndex];
-      if (nextStudent.id) {
+      if (nextStudent.id && (!nextStudent.lessons || nextStudent.lessons.length === 0)) {
         this.loadStudentLessons(nextStudent.id);
       }
     }
@@ -255,7 +292,7 @@ export class MyStudentsComponent implements OnDestroy {
       const prevIndex = this.currentStudentIndex() - 1;
       this.currentStudentIndex.set(prevIndex);
       const prevStudent = this.students()[prevIndex];
-      if (prevStudent.id) {
+      if (prevStudent.id && (!prevStudent.lessons || prevStudent.lessons.length === 0)) {
         this.loadStudentLessons(prevStudent.id);
       }
     }
@@ -383,6 +420,7 @@ export class MyStudentsComponent implements OnDestroy {
 
         await this.studentService.updateStudent(studentId, updatedStudent);
 
+        // Refresh lessons for current student
         this.loadStudentLessons(studentId);
         this.lessonForm.reset();
       } catch (error) {
@@ -417,6 +455,7 @@ export class MyStudentsComponent implements OnDestroy {
     try {
       this.isLoading.set(true);
       await this.studentService.recordPayment(studentId, amount);
+      // No need to reload all students, just refresh the specific student's lessons
       this.loadStudentLessons(studentId);
     } catch (error) {
       console.error('Error recording payment:', error);
@@ -427,7 +466,7 @@ export class MyStudentsComponent implements OnDestroy {
 
   async updateProgressNotes(studentId: string, notes: string) {
     try {
-      this.isLoading.set(true);
+      // Don't set loading for this quick operation
       await this.studentService.updateProgressNotes(studentId, notes);
 
       // Update local student data without triggering refresh
@@ -512,27 +551,35 @@ export class MyStudentsComponent implements OnDestroy {
   }
 
   private loadStudentLessons(studentId: string) {
-    // Cleanup any existing subscription
-    this.currentSubscription?.unsubscribe();
+    // Cleanup any existing subscription first
+    if (this.currentSubscription) {
+      this.currentSubscription.unsubscribe();
+      this.currentSubscription = undefined;
+    }
 
-    // Don't set loading if we're already loading
-    if (!this.isLoading()) {
-      this.isLoading.set(true);
+    // Check if lessons are already loaded for this student
+    const student = this.students().find(s => s.id === studentId);
+    if (student?.lessons && student.lessons.length > 0) {
+      return; // Lessons already loaded
     }
 
     this.currentSubscription = this.studentService.getStudentLessons(studentId).pipe(
-      take(1),
+      take(1), // Only take one emission to prevent infinite loops
       tap(lessons => {
+        // Only update the specific student's lessons
         this.students.update(currentStudents => {
           const index = currentStudents.findIndex(s => s.id === studentId);
           if (index === -1) return currentStudents;
 
-          const updated = [...currentStudents];
+          const currentLessons = currentStudents[index].lessons || [];
+          
           // Only update if lessons have actually changed
-          if (JSON.stringify(updated[index].lessons) !== JSON.stringify(lessons)) {
+          if (JSON.stringify(currentLessons) !== JSON.stringify(lessons)) {
+            const updated = [...currentStudents];
             updated[index] = { ...updated[index], lessons };
+            return updated;
           }
-          return updated;
+          return currentStudents;
         });
       }),
       catchError(error => {
@@ -548,18 +595,30 @@ export class MyStudentsComponent implements OnDestroy {
   refreshLessons() {
     const currentStudent = this.currentStudent();
     if (currentStudent?.id) {
+      // Clear existing lessons first to force reload
+      this.students.update(currentStudents => {
+        const index = currentStudents.findIndex(s => s.id === currentStudent.id);
+        if (index !== -1) {
+          const updated = [...currentStudents];
+          updated[index] = { ...updated[index], lessons: [] };
+          return updated;
+        }
+        return currentStudents;
+      });
+      
       this.loadStudentLessons(currentStudent.id);
     }
   }
 
   private filterStudents(searchTerm: string) {
-    const trimmedTerm = searchTerm.trim();
+    const trimmedTerm = searchTerm.trim().toLowerCase();
     const currentFiltered = this.filteredStudents();
     
     if (!trimmedTerm) {
       const allStudents = this.students();
       // Only update if different
-      if (JSON.stringify(currentFiltered) !== JSON.stringify(allStudents)) {
+      if (allStudents.length !== currentFiltered.length ||
+          allStudents.some((student, index) => student.id !== currentFiltered[index]?.id)) {
         this.filteredStudents.set(allStudents);
       }
       return;
@@ -570,13 +629,15 @@ export class MyStudentsComponent implements OnDestroy {
       const newFiltered = results.map(result => result.item);
       
       // Only update if different
-      if (JSON.stringify(currentFiltered) !== JSON.stringify(newFiltered)) {
+      if (newFiltered.length !== currentFiltered.length ||
+          newFiltered.some((student, index) => student.id !== currentFiltered[index]?.id)) {
         this.filteredStudents.set(newFiltered);
       }
     }
   }
 
   ngOnDestroy() {
+    // Cleanup all subscriptions
     this.currentSubscription?.unsubscribe();
     this.studentsSubscription?.unsubscribe();
     this.destroy$.next();

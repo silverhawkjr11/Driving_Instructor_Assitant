@@ -1,28 +1,3 @@
-<div class="container">
-  <!-- Student Navigation -->
-  <div class="navigation-section">
-    <!-- Top row: Search and Add Student button -->
-    <div class="navigation-top">
-      <mat-form-field appearance="outline" class="search-field">
-        <mat-label>Search students...</mat-label>
-        <input matInput [formControl]="searchControl" placeholder="Type to search..."
-          (keydown.enter)="switchToFirstFilteredStudent()">
-        <mat-icon matSuffix>search</mat-icon>
-      </mat-form-field>
-
-      <button mat-raised-button class="add-student-btn" (click)="showAddStudentForm()">
-        <mat-icon>person_add</mat-icon>
-        Add Student
-      </button>
-    </div>
-
-    <!-- Student Navigation Pills -->
-    <div class="student-navigation">
-      <!-- @if (isLoading()) { -->
-      <div class="loading-state">
-        <mat-spinner diameter="32"></mat-spinner>
-        <div class="loading-text">Loading students...</div>
-      </div>
 <!-- src/app/pages/my-students/my-students.component.html -->
 <div class="container">
   <!-- Student Navigation -->
