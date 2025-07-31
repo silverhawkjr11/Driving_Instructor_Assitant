@@ -10,6 +10,7 @@ import {
   PLATFORM_ID,
   signal,
   ViewChild,
+  OnDestroy,
 } from '@angular/core';
 import { MatTableModule } from '@angular/material/table';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
@@ -26,7 +27,7 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import Fuse from 'fuse.js';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { catchError, finalize, first, map, of, Subject, Subscription, take, takeUntil, tap } from 'rxjs';
+import { catchError, finalize, first, map, of, Subject, Subscription, take, takeUntil, tap, debounceTime } from 'rxjs';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 
 import Hammer from 'hammerjs';
@@ -46,9 +47,6 @@ import {
 import { PaymentStatus, Student } from '../../../models/student.model';
 import { Lesson } from '../../../models/lesson.model';
 import { Auth } from '@angular/fire/auth';
-import { TimestampToDatePipe } from '../../pipes/timestamp-to-date.pipe';
-import { FirestoreTimestampPipe } from '../../pipes/firestore-timestamp.pipe';
-import { LanguageSelectorComponent } from "../../language-selector/language-selector.component";
 import { TranslatePipe } from "../../pipes/translate.pipe";
 
 @Component({
@@ -72,8 +70,6 @@ import { TranslatePipe } from "../../pipes/translate.pipe";
     MatIcon,
     HammerModule,
     MatProgressSpinnerModule,
-    // TimestampToDatePipe,
-    // FirestoreTimestampPipe,
     MatCheckboxModule,
     TranslatePipe
   ],
@@ -106,7 +102,7 @@ import { TranslatePipe } from "../../pipes/translate.pipe";
     },
   ],
 })
-export class MyStudentsComponent {
+export class MyStudentsComponent implements OnDestroy {
   @ViewChild('cardContainer') cardContainer!: ElementRef;
   private studentService = inject(StudentService);
   private isBrowser: boolean;
@@ -118,6 +114,7 @@ export class MyStudentsComponent {
   private readonly SWIPE_THRESHOLD = 50; // minimum distance for swipe
   private destroy$ = new Subject<void>();
   private currentSubscription?: Subscription;
+  private studentsSubscription?: Subscription;
 
   isLoading = signal(true);
   searchControl = new FormControl('');
@@ -131,7 +128,7 @@ export class MyStudentsComponent {
   // Form definitions
   studentForm = new FormGroup({
     name: new FormControl('', Validators.required),
-    phone: new FormControl('', [Validators.required, this.phoneValidator])
+    phone: new FormControl('', [Validators.required, MyStudentsComponent.phoneValidator])
   });
 
   lessonForm = new FormGroup({
@@ -142,36 +139,64 @@ export class MyStudentsComponent {
     isPaid: new FormControl(false)
   });
 
-  private studentsObservable$ = this.studentService.getStudents().pipe(
-    map((students) => {
-      if (students) {
-        const studentsWithLessons = students.map((student) => ({ ...student, lessons: [] }));
-        this.students.set(studentsWithLessons);
-        this.filteredStudents.set(studentsWithLessons);
-
-        // Initialize Fuse.js
-        this.fuse = new Fuse(studentsWithLessons, {
-          keys: ['name'],
-          threshold: 0.3,
-          location: 0,
-          distance: 100,
-        });
-
-        if (studentsWithLessons.length > 0 && studentsWithLessons[0].id) {
-          this.loadStudentLessons(studentsWithLessons[0].id);
-        }
-      }
-      this.isLoading.set(false);
-      return students || [];
-    })
-  );
-
   constructor(@Inject(PLATFORM_ID) platformId: Object) {
     this.isBrowser = isPlatformBrowser(platformId);
-    this.studentsObservable$.subscribe();
+    this.initializeStudents();
+    this.initializeSearch();
+  }
 
-    // Add search subscription
+  private initializeStudents() {
+    // Prevent multiple subscriptions by checking if one already exists
+    if (this.studentsSubscription) {
+      this.studentsSubscription.unsubscribe();
+    }
+
+    this.studentsSubscription = this.studentService.getStudents().pipe(
+      takeUntil(this.destroy$),
+      catchError(error => {
+        console.error('Error loading students:', error);
+        this.isLoading.set(false);
+        return of([]);
+      })
+    ).subscribe(students => {
+      try {
+        if (students) {
+          const studentsWithLessons = students.map((student) => ({ ...student, lessons: [] }));
+          
+          // Only update if the data has actually changed
+          const currentStudentsJson = JSON.stringify(this.students());
+          const newStudentsJson = JSON.stringify(studentsWithLessons);
+          
+          if (currentStudentsJson !== newStudentsJson) {
+            this.students.set(studentsWithLessons);
+            this.filteredStudents.set(studentsWithLessons);
+
+            // Initialize Fuse.js only once or when students change
+            this.fuse = new Fuse(studentsWithLessons, {
+              keys: ['name'],
+              threshold: 0.3,
+              location: 0,
+              distance: 100,
+            });
+
+            // Load lessons for first student only if we don't have a current student
+            if (studentsWithLessons.length > 0 && studentsWithLessons[0].id && this.currentStudentIndex() === 0) {
+              this.loadStudentLessons(studentsWithLessons[0].id);
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error processing students data:', error);
+      } finally {
+        this.isLoading.set(false);
+      }
+    });
+  }
+
+  private initializeSearch() {
+    // Add debounce to prevent excessive filtering
     this.searchControl.valueChanges.pipe(
+      debounceTime(300), // Wait 300ms after user stops typing
       takeUntil(this.destroy$)
     ).subscribe(searchTerm => {
       this.filterStudents(searchTerm || '');
@@ -182,11 +207,12 @@ export class MyStudentsComponent {
   currentStudent = computed(() => {
     const studentsList = this.students();
     if (!studentsList?.length) return null;
-    return studentsList[this.currentStudentIndex()];
+    const index = this.currentStudentIndex();
+    return studentsList[index] || null;
   });
 
-  // Phone validator
-  phoneValidator(control: any) {
+  // Phone validator - make it static to prevent recreating on each call
+  static phoneValidator(control: any) {
     const phoneRegex = /^[\+]?[\d\s\-\(\)]+$/;
     if (control.value && !phoneRegex.test(control.value)) {
       return { invalidPhone: true };
@@ -204,7 +230,7 @@ export class MyStudentsComponent {
 
   setCurrentStudent(student: Student) {
     const mainIndex = this.students().findIndex(s => s.id === student.id);
-    if (mainIndex !== -1) {
+    if (mainIndex !== -1 && mainIndex !== this.currentStudentIndex()) {
       this.currentStudentIndex.set(mainIndex);
       if (student.id) {
         this.loadStudentLessons(student.id);
@@ -213,16 +239,25 @@ export class MyStudentsComponent {
   }
 
   nextStudent() {
-    if (this.students() && this.currentStudentIndex() < this.students()!.length - 1) {
-      const nextStudent = this.students()[this.currentStudentIndex() + 1];
-      this.setCurrentStudent(nextStudent);
+    const students = this.students();
+    if (students && this.currentStudentIndex() < students.length - 1) {
+      const nextIndex = this.currentStudentIndex() + 1;
+      this.currentStudentIndex.set(nextIndex);
+      const nextStudent = students[nextIndex];
+      if (nextStudent.id) {
+        this.loadStudentLessons(nextStudent.id);
+      }
     }
   }
 
   previousStudent() {
     if (this.currentStudentIndex() > 0) {
-      const prevStudent = this.students()[this.currentStudentIndex() - 1];
-      this.setCurrentStudent(prevStudent);
+      const prevIndex = this.currentStudentIndex() - 1;
+      this.currentStudentIndex.set(prevIndex);
+      const prevStudent = this.students()[prevIndex];
+      if (prevStudent.id) {
+        this.loadStudentLessons(prevStudent.id);
+      }
     }
   }
 
@@ -231,12 +266,14 @@ export class MyStudentsComponent {
     this.startX = event.touches[0].clientX;
     this.isDragging = true;
 
-    const card = this.cardContainer.nativeElement;
-    card.style.transition = 'none';
+    if (this.cardContainer?.nativeElement) {
+      const card = this.cardContainer.nativeElement;
+      card.style.transition = 'none';
+    }
   }
 
   onTouchMove(event: TouchEvent) {
-    if (!this.isDragging) return;
+    if (!this.isDragging || !this.cardContainer?.nativeElement) return;
 
     const currentX = event.touches[0].clientX;
     const diffX = currentX - this.startX;
@@ -246,7 +283,7 @@ export class MyStudentsComponent {
   }
 
   onTouchEnd(event: TouchEvent) {
-    if (!this.isDragging) return;
+    if (!this.isDragging || !this.cardContainer?.nativeElement) return;
 
     this.isDragging = false;
     const card = this.cardContainer.nativeElement;
@@ -393,7 +430,7 @@ export class MyStudentsComponent {
       this.isLoading.set(true);
       await this.studentService.updateProgressNotes(studentId, notes);
 
-      // Update local student data
+      // Update local student data without triggering refresh
       this.students.update(currentStudents => {
         const index = currentStudents.findIndex(s => s.id === studentId);
         if (index !== -1) {
@@ -478,7 +515,10 @@ export class MyStudentsComponent {
     // Cleanup any existing subscription
     this.currentSubscription?.unsubscribe();
 
-    this.isLoading.set(true);
+    // Don't set loading if we're already loading
+    if (!this.isLoading()) {
+      this.isLoading.set(true);
+    }
 
     this.currentSubscription = this.studentService.getStudentLessons(studentId).pipe(
       take(1),
@@ -488,7 +528,10 @@ export class MyStudentsComponent {
           if (index === -1) return currentStudents;
 
           const updated = [...currentStudents];
-          updated[index] = { ...updated[index], lessons };
+          // Only update if lessons have actually changed
+          if (JSON.stringify(updated[index].lessons) !== JSON.stringify(lessons)) {
+            updated[index] = { ...updated[index], lessons };
+          }
           return updated;
         });
       }),
@@ -510,19 +553,32 @@ export class MyStudentsComponent {
   }
 
   private filterStudents(searchTerm: string) {
-    if (!searchTerm.trim()) {
-      this.filteredStudents.set(this.students());
+    const trimmedTerm = searchTerm.trim();
+    const currentFiltered = this.filteredStudents();
+    
+    if (!trimmedTerm) {
+      const allStudents = this.students();
+      // Only update if different
+      if (JSON.stringify(currentFiltered) !== JSON.stringify(allStudents)) {
+        this.filteredStudents.set(allStudents);
+      }
       return;
     }
 
     if (this.fuse) {
-      const results = this.fuse.search(searchTerm);
-      this.filteredStudents.set(results.map(result => result.item));
+      const results = this.fuse.search(trimmedTerm);
+      const newFiltered = results.map(result => result.item);
+      
+      // Only update if different
+      if (JSON.stringify(currentFiltered) !== JSON.stringify(newFiltered)) {
+        this.filteredStudents.set(newFiltered);
+      }
     }
   }
 
   ngOnDestroy() {
     this.currentSubscription?.unsubscribe();
+    this.studentsSubscription?.unsubscribe();
     this.destroy$.next();
     this.destroy$.complete();
   }
