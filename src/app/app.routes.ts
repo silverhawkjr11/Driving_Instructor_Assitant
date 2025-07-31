@@ -8,15 +8,36 @@ import { RegisterComponent } from './register/register.component';
 import { UserComponent } from './user/user.component';
 import { AuthGuard } from './core/auth.guard';
 import { UserResolver } from './user/user.resolver';
-
+import { authRedirectGuard } from './core/auth-redirect.guard';
+import { rootRedirectGuard } from './core/root-redirect.guard';
 
 // app.routes.ts
 export const routes: Routes = [
-  { path: 'my-students', component: MyStudentsComponent, canActivate: [AuthGuard] },
-  { path: 'schedule', component: ScheduleComponent, canActivate: [AuthGuard] },
-  { path: 'settings', component: SettingsComponent, canActivate: [AuthGuard] },
-  { path: 'login', component: LoginComponent },
-  { path: '', redirectTo: 'login', pathMatch: 'full' },
+  { 
+    path: 'my-students', 
+    component: MyStudentsComponent, 
+    canActivate: [AuthGuard] 
+  },
+  { 
+    path: 'schedule', 
+    component: ScheduleComponent, 
+    canActivate: [AuthGuard] 
+  },
+  { 
+    path: 'settings', 
+    component: SettingsComponent, 
+    canActivate: [AuthGuard] 
+  },
+  { 
+    path: 'login', 
+    component: LoginComponent,
+    canActivate: [authRedirectGuard] // This will redirect to my-students if already logged in
+  },
+  { 
+    path: '', 
+    canActivate: [rootRedirectGuard], // This will redirect based on auth state
+    children: []
+  },
   // { path: 'register', component: RegisterComponent, canActivate: [AuthGuard] },
   // { path: 'user', component: UserComponent, resolve: { data: UserResolver } }
 ];

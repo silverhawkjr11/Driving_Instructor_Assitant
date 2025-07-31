@@ -1,20 +1,58 @@
-<form [formGroup]="loginForm!" (ngSubmit)="tryLogin(loginForm!.value)" class="login-form">
-  <mat-card>
-    <mat-card-content>
-      <mat-form-field appearance="fill" class="full-width">
-        <mat-label>Email</mat-label>
-        <input matInput type="email" id="email" formControlName="email">
-      </mat-form-field>
-      <mat-form-field appearance="fill" class="full-width">
-        <mat-label>Password</mat-label>
-        <input matInput type="password" id="password" formControlName="password">
-      </mat-form-field>
-      <div class="button-container">
-        <button mat-raised-button color="primary" type="submit">Login</button>
-      </div>
-    </mat-card-content>
-  </mat-card>
-</form>
-<div class="button-container">
-  <button mat-raised-button color="warn" type="button" (click)="tryGoogleLogin()">Login with Google</button>
+<div class="login-container">
+  <form [formGroup]="loginForm!" (ngSubmit)="tryLogin(loginForm!.value)" class="login-form">
+    <mat-card>
+      <mat-card-content>
+        <div class="form-header">
+          <h2>Welcome Back</h2>
+          <p>Sign in to your driving instructor account</p>
+        </div>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Email</mat-label>
+          <input matInput type="email" id="email" formControlName="email" placeholder="Enter your email">
+          <mat-icon matSuffix>email</mat-icon>
+          <mat-error *ngIf="loginForm?.get('email')?.hasError('required')">
+            Email is required
+          </mat-error>
+          <mat-error *ngIf="loginForm?.get('email')?.hasError('email')">
+            Please enter a valid email
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Password</mat-label>
+          <input matInput type="password" id="password" formControlName="password" placeholder="Enter your password">
+          <mat-icon matSuffix>lock</mat-icon>
+          <mat-error *ngIf="loginForm?.get('password')?.hasError('required')">
+            Password is required
+          </mat-error>
+          <mat-error *ngIf="loginForm?.get('password')?.hasError('minlength')">
+            Password must be at least 6 characters
+          </mat-error>
+        </mat-form-field>
+
+        <div class="button-container">
+          <button mat-raised-button color="primary" type="submit" [disabled]="!loginForm?.valid">
+            <mat-icon>login</mat-icon>
+            Sign In
+          </button>
+        </div>
+
+        <div class="divider">
+          <span>or</span>
+        </div>
+
+        <div class="button-container">
+          <button mat-raised-button color="warn" type="button" (click)="tryGoogleLogin()">
+            <mat-icon>google</mat-icon>
+            Continue with Google
+          </button>
+        </div>
+
+        <div class="error-message" *ngIf="errorMessage">
+          {{ errorMessage }}
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </form>
 </div>
