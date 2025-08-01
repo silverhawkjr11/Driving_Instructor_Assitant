@@ -1,4 +1,151 @@
-mat-form-field {
-  width: 100%;
-  max-width: 400px;
+.settings-container {
+  padding: 24px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.settings-card {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+
+  mat-card-header {
+    padding: 24px 24px 16px 24px;
+
+    mat-card-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 24px;
+      font-weight: 600;
+      color: white;
+
+      mat-icon {
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 28px;
+        width: 28px;
+        height: 28px;
+      }
+    }
+
+    mat-card-subtitle {
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 16px;
+      margin-top: 8px;
+    }
+  }
+
+  mat-card-content {
+    padding: 16px 24px 24px 24px;
+  }
+}
+
+.theme-selection {
+  .theme-selector {
+    width: 100%;
+    max-width: 400px;
+    margin-bottom: 24px;
+
+    ::ng-deep .mat-mdc-form-field {
+      .mat-mdc-form-field-flex {
+        border-radius: 12px;
+      }
+
+      .mat-mdc-form-field-outline {
+        border-radius: 12px;
+      }
+
+      &.mat-focused {
+        .mat-mdc-form-field-outline-thick {
+          border-color: rgba(255, 255, 255, 0.5);
+        }
+      }
+    }
+
+    ::ng-deep .mat-mdc-select-value {
+      color: white;
+    }
+
+    ::ng-deep .mat-mdc-form-field-label {
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    ::ng-deep .mat-mdc-form-field-icon-suffix {
+      color: rgba(255, 255, 255, 0.6);
+    }
+  }
+
+  .current-theme-info {
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+
+    p {
+      margin: 0 0 12px 0;
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 14px;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+
+      strong {
+        color: white;
+      }
+
+      &.theme-note {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: rgba(255, 255, 255, 0.6);
+        font-size: 13px;
+        font-style: italic;
+
+        mat-icon {
+          font-size: 16px;
+          width: 16px;
+          height: 16px;
+          color: rgba(255, 255, 255, 0.5);
+        }
+      }
+    }
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .settings-container {
+    padding: 16px;
+  }
+
+  .settings-card {
+    mat-card-header {
+      padding: 20px 20px 12px 20px;
+
+      mat-card-title {
+        font-size: 20px;
+
+        mat-icon {
+          font-size: 24px;
+          width: 24px;
+          height: 24px;
+        }
+      }
+
+      mat-card-subtitle {
+        font-size: 14px;
+      }
+    }
+
+    mat-card-content {
+      padding: 12px 20px 20px 20px;
+    }
+  }
+
+  .theme-selection .theme-selector {
+    max-width: 100%;
+  }
 }

@@ -1,11 +1,26 @@
 <div class="settings-container">
-
-  <mat-form-field appearance="fill">
-
-    <mat-select [value]="currentTheme" (selectionChange)="onThemeChange($event.value)">
-      <mat-option *ngFor="let theme of themeService.themes" [value]="theme.value">
-        {{ theme.name }}
-      </mat-option>
-    </mat-select>
-  </mat-form-field>
+  <mat-card class="settings-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>palette</mat-icon>
+        Theme Settings
+      </mat-card-title>
+      <mat-card-subtitle>Choose your preferred color theme</mat-card-subtitle>
+    </mat-card-header>
+    
+    <mat-card-content>
+      <div class="theme-selection">
+        <mat-form-field appearance="outline" class="theme-selector">
+          <mat-label>Select Theme</mat-label>
+          <mat-select [value]="currentTheme" (selectionChange)="onThemeChange($event.value)">
+            <mat-option *ngFor="let theme of themeService.themes" [value]="theme.value">
+              {{ theme.name }}
+            </mat-option>
+          </mat-select>
+          <mat-icon matSuffix>color_lens</mat-icon>
+        </mat-form-field>
+        
+      </div>
+    </mat-card-content>
+  </mat-card>
 </div>

@@ -1,5 +1,5 @@
 // src/app/app.component.ts
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
@@ -11,6 +11,7 @@ import { AuthService } from './core/auth.service';
 import { CommonModule } from '@angular/common';
 import { LanguageSelectorComponent } from "./language-selector/language-selector.component";
 import { TranslatePipe } from './pipes/translate.pipe';
+import { ThemeService } from './services/theme.service';
 
 @Component({
   selector: 'app-root',
@@ -30,13 +31,20 @@ import { TranslatePipe } from './pipes/translate.pipe';
     TranslatePipe
   ]
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
   title = 'frontend';
   
   constructor(
     public authService: AuthService,
-    private router: Router
+    private router: Router,
+    private themeService: ThemeService // Initialize theme service
   ) { }
+
+  ngOnInit(): void {
+    // Theme service will automatically handle theme application based on routes
+    // Force apply theme if we're not on login page
+    this.themeService.forceApplyCurrentTheme();
+  }
 
   logout() {
     this.authService.doLogout().then(() => {
