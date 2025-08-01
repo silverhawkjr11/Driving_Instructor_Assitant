@@ -17,6 +17,7 @@ export class ThemeService {
     { name: 'Pink & Blue Grey', value: 'assets/themes/pink-bluegrey.css' },
     { name: 'Purple & Green', value: 'assets/themes/purple-green.css' },
     { name: 'Deep Purple & Amber', value: 'assets/themes/deeppurple-amber.css' },
+    { name: 'Catppuccin Mocha', value: 'assets/themes/catppuccin-mocha.css' },
     { name: 'Rose Red', value: 'assets/themes/rose-red.css' },
     { name: 'Azure Blue', value: 'assets/themes/azure-blue.css' },
     { name: 'Cyan Orange', value: 'assets/themes/cyan-orange.css' },
