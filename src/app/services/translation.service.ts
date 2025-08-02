@@ -126,6 +126,13 @@ export class TranslationService {
       es: 'Fecha',
       fr: 'Date'
     },
+      'start_time': {
+        en: 'Start Time',
+        he: 'שעת התחלה',
+        ar: 'وقت البداية',
+        es: 'Hora de Inicio',
+        fr: 'Heure de Début'
+    },
     'duration': {
       en: 'Duration',
       he: 'משך זמן',
@@ -226,6 +233,108 @@ export class TranslationService {
       es: 'Vencido',
       fr: 'En Retard'
     },
+
+    // Add these translations to your translation.service.ts translations object
+
+    // Calendar specific translations
+    'schedule_lesson': {
+      en: 'Schedule Lesson',
+      he: 'קבע שיעור',
+      ar: 'جدولة درس',
+      es: 'Programar Lección',
+      fr: 'Programmer Leçon'
+    },
+    'today': {
+      en: 'Today',
+      he: 'היום',
+      ar: 'اليوم',
+      es: 'Hoy',
+      fr: 'Aujourd\'hui'
+    },
+    'day': {
+      en: 'Day',
+      he: 'יום',
+      ar: 'يوم',
+      es: 'Día',
+      fr: 'Jour'
+    },
+    'week': {
+      en: 'Week',
+      he: 'שבוע',
+      ar: 'أسبوع',
+      es: 'Semana',
+      fr: 'Semaine'
+    },
+    'month': {
+      en: 'Month',
+      he: 'חודש',
+      ar: 'شهر',
+      es: 'Mes',
+      fr: 'Mois'
+    },
+    'time': {
+      en: 'Time',
+      he: 'זמן',
+      ar: 'وقت',
+      es: 'Hora',
+      fr: 'Heure'
+    },
+    'quick_navigation': {
+      en: 'Quick Navigation',
+      he: 'ניווט מהיר',
+      ar: 'التنقل السريع',
+      es: 'Navegación Rápida',
+      fr: 'Navigation Rapide'
+    },
+    'student_name_required': {
+      en: 'Student name is required',
+      he: 'שם התלמיד נדרש',
+      ar: 'اسم الطالب مطلوب',
+      es: 'Se requiere nombre del estudiante',
+      fr: 'Le nom de l\'étudiant est requis'
+    },
+    'student_not_found': {
+      en: 'Student not found',
+      he: 'תלמיד לא נמצא',
+      ar: 'لم يتم العثور على الطالب',
+      es: 'Estudiante no encontrado',
+      fr: 'Étudiant non trouvé'
+    },
+    'lesson_notes': {
+      en: 'Lesson notes:',
+      he: 'הערות שיעור:',
+      ar: 'ملاحظات الدرس:',
+      es: 'Notas de la lección:',
+      fr: 'Notes de leçon:'
+    },
+    'duration_label': {
+      en: 'Duration',
+      he: 'משך זמן',
+      ar: 'المدة',
+      es: 'Duración',
+      fr: 'Durée'
+    },
+    'minutes': {
+      en: 'minutes',
+      he: 'דקות',
+      ar: 'دقائق',
+      es: 'minutos',
+      fr: 'minutes'
+    },
+    'failed_to_create_lesson': {
+      en: 'Failed to create lesson',
+      he: 'נכשל ביצירת שיעור',
+      ar: 'فشل في إنشاء الدرس',
+      es: 'Error al crear lección',
+      fr: 'Échec de création de leçon'
+    },
+    'failed_to_update_lesson': {
+      en: 'Failed to update lesson',
+      he: 'נכשל בעדכון שיעור',
+      ar: 'فشل في تحديث الدرس',
+      es: 'Error al actualizar lección',
+      fr: 'Échec de mise à jour de leçon'
+},
 
     // Progress & Test Readiness
     'lessons_completed': {

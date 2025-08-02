@@ -178,6 +178,7 @@
               <div class="lesson-date">
                 <mat-icon>event</mat-icon>
                 {{ lesson.date | date:'shortDate' }}
+                <span class="lesson-time">{{ lesson.startTime }}</span>
               </div>
               <div class="lesson-duration">{{ lesson.duration }}min</div>
               <div class="lesson-cost" [ngClass]="{'paid': lesson.isPaid, 'unpaid': !lesson.isPaid}">
@@ -205,11 +206,20 @@
             <div class="form-row">
               <mat-form-field appearance="outline">
                 <mat-label>{{'date' | translate}}</mat-label>
-                <input matInput [matDatepicker]="picker" formControlName="date">
-                <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
-                <mat-datepicker #picker></mat-datepicker>
+                <input matInput [matDatepicker]="datePicker" formControlName="date">
+                <mat-datepicker-toggle matIconSuffix [for]="datePicker"></mat-datepicker-toggle>
+                <mat-datepicker #datePicker></mat-datepicker>
               </mat-form-field>
 
+              <mat-form-field appearance="outline">
+                <mat-label>{{'start_time' | translate}}</mat-label>
+                <input matInput [matTimepicker]="timePicker" formControlName="startTime">
+                <mat-timepicker-toggle matIconSuffix [for]="timePicker"/>
+                <mat-timepicker #timePicker/>
+              </mat-form-field>
+              </div>
+
+            <div class="form-row">
               <mat-form-field appearance="outline">
                 <mat-label>{{'duration_minutes' | translate}}</mat-label>
                 <input matInput type="number" formControlName="duration">

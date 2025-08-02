@@ -1,101 +1,168 @@
-<div class="calendar-container mat-elevation-z2">
+<div class="calendar-container">
   <!-- Calendar Header -->
-  <mat-toolbar color="primary">
-    <div class="toolbar-left">
-      <button mat-icon-button (click)="navigate('prev')">
-        <mat-icon>chevron_left</mat-icon>
-      </button>
-      <button mat-button (click)="goToToday()">Today</button>
-      <button mat-icon-button (click)="navigate('next')">
-        <mat-icon>chevron_right</mat-icon>
-      </button>
-      <span class="view-title">{{ getViewTitle() }}</span>
-    </div>
+  <mat-card class="calendar-header-card">
+    <mat-card-content>
+      <div class="calendar-header">
+        <div class="navigation-section">
+          <button mat-icon-button (click)="navigate('prev')" [attr.aria-label]="'Previous ' + currentView">
+            <mat-icon>chevron_left</mat-icon>
+          </button>
+          
+          <div class="current-period">
+            <h2 class="period-title">{{ getViewTitle() }}</h2>
+            <button mat-button class="today-btn" (click)="goToToday()" 
+                    [class.highlighted]="isCurrentPeriodToday()">
+              Today
+            </button>
+          </div>
+          
+          <button mat-icon-button (click)="navigate('next')" [attr.aria-label]="'Next ' + currentView">
+            <mat-icon>chevron_right</mat-icon>
+          </button>
+        </div>
 
-    <div class="toolbar-right">
-      <mat-button-toggle-group [value]="currentView" (change)="onViewChange($event.value)">
-        <mat-button-toggle value="day">Day</mat-button-toggle>
-        <mat-button-toggle value="3day">3 Days</mat-button-toggle>
-        <mat-button-toggle value="week">Week</mat-button-toggle>
-        <mat-button-toggle value="month">Month</mat-button-toggle>
-      </mat-button-toggle-group>
+        <div class="view-controls">
+          <mat-button-toggle-group [value]="currentView" (change)="onViewChange($event.value)" 
+                                   class="view-toggle-group">
+            <mat-button-toggle value="day">Day</mat-button-toggle>
+            <mat-button-toggle value="week">Week</mat-button-toggle>
+            <mat-button-toggle value="month">Month</mat-button-toggle>
+          </mat-button-toggle-group>
 
-      <button mat-raised-button (click)="openAddEventDialog()">
-        <mat-icon>add</mat-icon>
-        Add Event
-      </button>
-    </div>
-  </mat-toolbar>
+          <button mat-raised-button color="primary" (click)="openAddLessonDialog()" class="add-lesson-btn">
+            <mat-icon>add</mat-icon>
+            Schedule Lesson
+          </button>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
 
-  <!-- Calendar Grid -->
-  @if (isMonthView()) {
-  <div class="month-view">
-    <div class="month-header">
-      @for (dayName of weekDays; track dayName) {
-      <div class="weekday">{{dayName}}</div>
-      }
-    </div>
-    <div class="month-grid">
-      @for (week of getMonthWeeks(); track week) {
-      <div class="week">
-        @for (date of week; track date) {
-        <div class="day" [class.different-month]="!isSameMonth(date)" [class.today]="isToday(date)"
-          (click)="onDayClick(date)">
-          <div class="day-number">{{date.getDate()}}</div>
-          <div class="day-events">
-            @for (event of getEventsForDay(date); track event) {
-            <div class="event-item" cdkDrag [cdkDragBoundary]="'.month-grid'"
-              (cdkDragEnded)="onMonthEventDragEnded($event, event, date)"
-              [style.backgroundColor]="event.color || '#1976d2'" [matTooltip]="event.title">
-              {{ event.title }}
-            </div>
+  <!-- Calendar Content -->
+  <div class="calendar-content">
+    <!-- Month View -->
+    @if (currentView() === 'month') {
+      <mat-card class="month-view-card">
+        <div class="month-view">
+          <!-- Weekday Headers -->
+          <div class="weekday-headers">
+            @for (day of weekDays; track day) {
+              <div class="weekday-header">{{ day }}</div>
+            }
+          </div>
+          
+          <!-- Calendar Grid -->
+          <div class="month-grid">
+            @for (week of getMonthWeeks(); track $index) {
+              @for (day of week; track day.getTime()) {
+                <div class="month-day" 
+                     [class.other-month]="!isSameMonth(day)" 
+                     [class.today]="isToday(day)"
+                     [class.selected]="isSelected(day)"
+                     (click)="onDayClick(day)">
+                  <div class="day-number">{{ day.getDate() }}</div>
+                  
+                  <div class="day-lessons">
+                    @for (lesson of getLessonsForDay(day); track lesson.id) {
+                      <div class="lesson-dot" 
+                           [style.background-color]="lesson.color || 'var(--mat-primary-500)'"
+                           [matTooltip]="getLessonTooltip(lesson)"
+                           (click)="onLessonClick(lesson, $event)">
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
             }
           </div>
         </div>
-        }
-      </div>
-      }
-    </div>
-  </div>
-  } @else {
-  <div class="calendar-grid">
-    <!-- Time Labels -->
-    <div class="time-labels">
-      <div class="time-label" *ngFor="let hour of hours">
-        {{ hour }}:00
-      </div>
-    </div>
+      </mat-card>
+    }
 
-    <!-- Days -->
-    <div class="days-container">
-      <!-- Day Headers -->
-      <div class="day-headers">
-        <div class="day-header" *ngFor="let day of getVisibleDays()">
-          <div class="day-name">{{ day | date:'EEE' }}</div>
-          <div class="day-date">{{ day | date:'d' }}</div>
-        </div>
-      </div>
-
-      <!-- Time Slots -->
-      <div class="time-slots">
-        <div class="day-column" *ngFor="let day of getVisibleDays()">
-          <div class="time-slot" *ngFor="let hour of hours" (click)="openAddEventDialog(day, hour)">
+    <!-- Week/Day View -->
+    @if (currentView() === 'week' || currentView() === 'day') {
+      <div class="week-day-container">
+        <!-- Time Column -->
+        <mat-card class="time-column-card">
+          <div class="time-column">
+            <div class="time-header">Time</div>
+            @for (hour of getDisplayHours(); track hour) {
+              <div class="time-slot-label">
+                {{ formatHour(hour) }}
+              </div>
+            }
           </div>
-        </div>
-      </div>
+        </mat-card>
 
-      <!-- Events -->
-      <div class="events-layer">
-        <div class="event" *ngFor="let event of getVisibleEvents()" cdkDrag [cdkDragDisabled]="isMonthView()"
-          (cdkDragEnded)="onEventDragEnded($event, event)" [style.top.px]="getEventTop(event)"
-          [style.left.%]="getEventLeft(event)" [style.width.%]="getEventWidth()"
-          [style.height.px]="getEventHeight(event)" [style.backgroundColor]="event.color || '#1976d2'"
-          (click)="editEvent(event)">
-          {{ event.title }}
-          <div class="event-resize-handle" (mousedown)="startResize($event, event)"></div>
-        </div>
+        <!-- Days Grid -->
+        <mat-card class="days-grid-card">
+          <div class="days-container">
+            <!-- Day Headers -->
+            <div class="day-headers">
+              @for (day of getVisibleDays(); track day.getTime()) {
+                <div class="day-header" [class.today]="isToday(day)">
+                  <div class="day-name">{{ day | date:'EEE' }}</div>
+                  <div class="day-date" [class.today-date]="isToday(day)">{{ day | date:'d' }}</div>
+                </div>
+              }
+            </div>
+
+            <!-- Time Grid -->
+            <div class="time-grid">
+              @for (day of getVisibleDays(); track day.getTime()) {
+                <div class="day-column">
+                  @for (hour of getDisplayHours(); track hour) {
+                    <div class="time-slot" 
+                         (click)="onTimeSlotClick(day, hour)"
+                         [class.current-hour]="isCurrentHour(day, hour)">
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+
+            <!-- Lessons Overlay -->
+            <div class="lessons-overlay">
+              @for (lesson of getVisibleLessons(); track lesson.id) {
+                <div class="lesson-block"
+                     [style.top.px]="getLessonTop(lesson)"
+                     [style.left.%]="getLessonLeft(lesson)"
+                     [style.width.%]="getLessonWidth()"
+                     [style.height.px]="getLessonHeight(lesson)"
+                     [style.background-color]="lesson.color || 'var(--mat-primary-500)'"
+                     [matTooltip]="getLessonTooltip(lesson)"
+                     (click)="onLessonClick(lesson, $event)"
+                     cdkDrag
+                     [cdkDragBoundary]="'.time-grid'"
+                     (cdkDragEnded)="onLessonDragEnd($event, lesson)">
+                  
+                  <div class="lesson-content">
+                    <div class="lesson-title">{{ lesson.studentName }}</div>
+                    <div class="lesson-time">{{ getLessonTimeString(lesson) }}</div>
+                  </div>
+                  
+                  <div class="lesson-resize-handle" 
+                       (mousedown)="startResize($event, lesson)">
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        </mat-card>
       </div>
-    </div>
+    }
   </div>
-  }
+
+  <!-- Mini Calendar (optional, for quick navigation) -->
+  <mat-card class="mini-calendar-card" *ngIf="currentView() !== 'month'">
+    <mat-card-header>
+      <mat-card-title>Quick Navigation</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <mat-calendar [selected]="selectedDate()" 
+                    (selectedChange)="onMiniCalendarChange($event)"
+                    [dateFilter]="dateFilter">
+      </mat-calendar>
+    </mat-card-content>
+  </mat-card>
 </div>

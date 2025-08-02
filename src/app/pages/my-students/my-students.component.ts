@@ -20,6 +20,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { FormsModule } from '@angular/forms';
 import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatTimepickerModule } from '@angular/material/timepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSortModule } from '@angular/material/sort';
@@ -63,6 +64,7 @@ import { TranslatePipe } from "../../pipes/translate.pipe";
     FormsModule,
     ReactiveFormsModule,
     MatDatepickerModule,
+    MatTimepickerModule,
     MatNativeDateModule,
     MatButtonModule,
     MatSortModule,
@@ -132,8 +134,10 @@ export class MyStudentsComponent implements OnDestroy {
     phone: new FormControl('', [Validators.required, MyStudentsComponent.phoneValidator])
   });
 
+  // Updated lesson form in my-students.component.ts
   lessonForm = new FormGroup({
     date: new FormControl(null, Validators.required),
+    startTime: new FormControl('', Validators.required),
     duration: new FormControl(null, [Validators.required, Validators.min(1)]),
     cost: new FormControl(null, [Validators.required, Validators.min(0)]),
     notes: new FormControl(''),
@@ -384,6 +388,7 @@ export class MyStudentsComponent implements OnDestroy {
     }
   }
 
+  // Updated addLesson method
   async addLesson(studentId: string) {
     if (this.lessonForm.valid && this.currentStudent()) {
       this.isLoading.set(true);
@@ -391,6 +396,7 @@ export class MyStudentsComponent implements OnDestroy {
         const formValue = this.lessonForm.value;
         const newLesson: Lesson = {
           date: formValue.date!,
+          startTime: formValue.startTime!,
           duration: formValue.duration!,
           cost: formValue.cost!,
           notes: formValue.notes || '',

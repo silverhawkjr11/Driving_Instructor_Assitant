@@ -6,6 +6,7 @@ import {
   doc,
   addDoc,
   updateDoc,
+  deleteDoc,
   query,
   orderBy,
   where,
@@ -19,7 +20,18 @@ import {
   docData
 } from '@angular/fire/firestore';
 import { Auth } from '@angular/fire/auth';
-import { first, from, map, Observable, of, switchMap, filter, startWith, catchError } from 'rxjs';
+import { 
+  first, 
+  from, 
+  map, 
+  Observable, 
+  of, 
+  switchMap, 
+  filter, 
+  startWith, 
+  catchError, 
+  combineLatest 
+} from 'rxjs';
 import { Student } from '../../models/student.model';
 import { Lesson } from '../../models/lesson.model';
 import { authState } from '@angular/fire/auth';
@@ -117,6 +129,7 @@ export class StudentService {
               lesson['createdAt'].toDate() :
               lesson['createdAt'] ? new Date(lesson['createdAt']) : new Date(),
             // Ensure required fields have default values
+            startTime: lesson['startTime'] || '', // Handle startTime field
             duration: lesson['duration'] || 0,
             cost: lesson['cost'] || 0,
             notes: lesson['notes'] || '',
@@ -195,8 +208,142 @@ export class StudentService {
     await addDoc(lessonsRef, {
       ...lesson,
       date: Timestamp.fromDate(lessonDate),
+      startTime: lesson.startTime, // Save the start time string
       createdAt: serverTimestamp()
     });
+  }
+
+  async updateLesson(studentId: string, lessonId: string, updates: Partial<Lesson>): Promise<void> {
+    if (!studentId || !lessonId) {
+      throw new Error('Student ID and Lesson ID are required for update');
+    }
+
+    const lessonRef = doc(this.firestore, `students/${studentId}/lessons`, lessonId);
+
+    // Convert Date objects to Timestamps for Firestore
+    const firestoreUpdates: any = { ...updates };
+
+    if (updates.date && updates.date instanceof Date) {
+      firestoreUpdates.date = Timestamp.fromDate(updates.date);
+    }
+
+    if (updates.createdAt && updates.createdAt instanceof Date) {
+      firestoreUpdates.createdAt = Timestamp.fromDate(updates.createdAt);
+    }
+
+    await updateDoc(lessonRef, firestoreUpdates);
+  }
+
+  async deleteLesson(studentId: string, lessonId: string): Promise<void> {
+    if (!studentId || !lessonId) {
+      throw new Error('Student ID and Lesson ID are required for deletion');
+    }
+
+    const lessonRef = doc(this.firestore, `students/${studentId}/lessons`, lessonId);
+    await deleteDoc(lessonRef);
+  }
+
+  getLessonById(studentId: string, lessonId: string): Observable<Lesson | undefined> {
+    if (!studentId || !lessonId) {
+      return of(undefined);
+    }
+
+    const lessonRef = doc(this.firestore, `students/${studentId}/lessons`, lessonId);
+    return docData(lessonRef, { idField: 'id' }).pipe(
+      map((lesson: any) => {
+        if (!lesson) return undefined;
+        
+        return {
+          ...lesson,
+          date: lesson['date'] instanceof Timestamp ? 
+            lesson['date'].toDate() : 
+            new Date(lesson['date']),
+          createdAt: lesson['createdAt'] instanceof Timestamp ? 
+            lesson['createdAt'].toDate() : 
+            lesson['createdAt'] ? new Date(lesson['createdAt']) : new Date(),
+          // Ensure required fields have default values
+          startTime: lesson['startTime'] || '',
+          duration: lesson['duration'] || 0,
+          cost: lesson['cost'] || 0,
+          notes: lesson['notes'] || '',
+          isPaid: lesson['isPaid'] || false,
+          status: lesson['status'] || 'completed'
+        } as Lesson;
+      }),
+      catchError(error => {
+        console.error(`Error loading lesson ${lessonId}:`, error);
+        return of(undefined);
+      })
+    );
+  }
+
+  // Helper method to get lessons for a specific date range
+  getLessonsInDateRange(studentId: string, startDate: Date, endDate: Date): Observable<Lesson[]> {
+    if (!studentId) {
+      return of([]);
+    }
+
+    try {
+      const lessonsRef = collection(this.firestore, `students/${studentId}/lessons`);
+      const q = query(
+        lessonsRef, 
+        where('date', '>=', Timestamp.fromDate(startDate)),
+        where('date', '<=', Timestamp.fromDate(endDate)),
+        orderBy('date', 'asc')
+      );
+
+      return collectionData(q, { idField: 'id' }).pipe(
+        map(lessons => {
+          return lessons.map(lesson => ({
+            ...lesson,
+            date: lesson['date'] instanceof Timestamp ?
+              lesson['date'].toDate() :
+              new Date(lesson['date']),
+            createdAt: lesson['createdAt'] instanceof Timestamp ?
+              lesson['createdAt'].toDate() :
+              lesson['createdAt'] ? new Date(lesson['createdAt']) : new Date(),
+            startTime: lesson['startTime'] || '',
+            duration: lesson['duration'] || 0,
+            cost: lesson['cost'] || 0,
+            notes: lesson['notes'] || '',
+            isPaid: lesson['isPaid'] || false,
+            status: lesson['status'] || 'completed'
+          }) as Lesson);
+        }),
+        catchError(error => {
+          console.error(`Error loading lessons in date range for student ${studentId}:`, error);
+          return of([]);
+        })
+      );
+    } catch (error) {
+      console.error(`Error setting up date range query for student ${studentId}:`, error);
+      return of([]);
+    }
+  }
+
+  // Method to get all lessons across all students for calendar view
+  getAllLessonsInDateRange(startDate: Date, endDate: Date): Observable<{lesson: Lesson, studentName: string, studentId: string}[]> {
+    return this.getStudents().pipe(
+      switchMap(students => {
+        if (!students.length) {
+          return of([]);
+        }
+
+        const lessonObservables = students.map(student => 
+          this.getLessonsInDateRange(student.id!, startDate, endDate).pipe(
+            map(lessons => lessons.map(lesson => ({
+              lesson,
+              studentName: student.name,
+              studentId: student.id!
+            })))
+          )
+        );
+
+        return combineLatest(lessonObservables).pipe(
+          map(lessonArrays => lessonArrays.flat())
+        );
+      })
+    );
   }
 
   async recordPayment(studentId: string, amount: number, method: string = 'CASH'): Promise<void> {

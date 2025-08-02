@@ -4,6 +4,7 @@ import { ReactiveFormsModule, FormGroup, FormControl, Validators } from '@angula
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatTimepickerModule } from '@angular/material/timepicker';
 import { MatButtonModule } from '@angular/material/button';
 
 @Component({
@@ -15,6 +16,7 @@ import { MatButtonModule } from '@angular/material/button';
     MatFormFieldModule,
     MatInputModule,
     MatDatepickerModule,
+    MatTimepickerModule,
     MatButtonModule
   ],
   templateUrl: './lesson-form.component.html',
@@ -26,6 +28,7 @@ export class LessonFormComponent {
 
   lessonForm = new FormGroup({
     date: new FormControl(null, Validators.required),
+    startTime: new FormControl('', Validators.required),
     duration: new FormControl(null, [Validators.required, Validators.min(1)]),
     notes: new FormControl(''),
   });

@@ -1,4 +1,11 @@
-<h2>Schedule</h2>
-<ul>
-  <app-calendar></app-calendar>
-</ul>
+<!-- schedule.component.html -->
+<div class="schedule-page">
+  <mat-toolbar color="primary" class="page-header">
+    <mat-icon>calendar_today</mat-icon>
+    <span>{{ 'schedule' | translate }}</span>
+  </mat-toolbar>
+  
+  <div class="schedule-content">
+    <app-calendar></app-calendar>
+  </div>
+</div>

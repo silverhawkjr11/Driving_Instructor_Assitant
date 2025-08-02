@@ -1,23 +1,24 @@
-// calendar.component.ts
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatToolbarModule } from '@angular/material/toolbar';
+import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatDialogModule, MatDialog } from '@angular/material/dialog';
-import { AddEventDialogComponent } from '../event-dialog/event-dialog.component';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
-import { MatTooltip } from '@angular/material/tooltip';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { DragDropModule, CdkDragEnd } from '@angular/cdk/drag-drop';
-export type CalendarViewType = 'day' | '3day' | 'week' | 'month';
-interface CalendarEvent {
-  id: number;
-  title: string;
-  start: Date;
-  end: Date;
-  color?: string;
+import { Subject, takeUntil, combineLatest, map } from 'rxjs';
+import { StudentService } from '../services/student.service';
+import { Student } from '../../models/student.model';
+import { Lesson } from '../../models/lesson.model';
+
+export type CalendarView = 'day' | 'week' | 'month';
+
+interface CalendarLesson extends Lesson {
+  studentName: string;
+  color: string;
 }
 
 @Component({
@@ -25,165 +26,225 @@ interface CalendarEvent {
   standalone: true,
   imports: [
     CommonModule,
-    MatToolbarModule,
+    MatCardModule,
     MatButtonModule,
     MatIconModule,
-    MatDialogModule,
     MatButtonToggleModule,
+    MatTooltipModule,
     MatDatepickerModule,
-    MatNativeDateModule,  // Add this line
-    MatTooltip,
+    MatNativeDateModule,
+    MatDialogModule,
     DragDropModule
   ],
   templateUrl: './calendar.component.html',
   styleUrls: ['./calendar.component.scss']
 })
-export class CalendarComponent implements OnInit {
+export class CalendarComponent implements OnInit, OnDestroy {
+  private studentService = inject(StudentService);
   private dialog = inject(MatDialog);
-  private draggedEvent: CalendarEvent | null = null;
-  private resizeStartY: number = 0;
-  private originalEventHeight: number = 0;
+  private destroy$ = new Subject<void>();
 
-  currentDate: Date;
-  currentView: CalendarViewType = 'week';
-  days: Date[] = [];
-  hours: number[] = Array.from({ length: 24 }, (_, i) => i);
-  events: CalendarEvent[] = [];
-  weekDays: string[] = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-
-  constructor() {
-    this.currentDate = new Date();
-    this.updateDays();
-  }
+  // Signals for reactive state
+  currentDate = signal(new Date());
+  selectedDate = signal(new Date());
+  currentView = signal<CalendarView>('week');
+  students = signal<Student[]>([]);
+  lessons = signal<CalendarLesson[]>([]);
+  
+  // Computed values
+  weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  
+  // Student colors for consistent lesson display
+  private studentColors = [
+    '#1976d2', '#388e3c', '#f57c00', '#7b1fa2', 
+    '#303f9f', '#0097a7', '#689f38', '#f9a825',
+    '#e64a19', '#5d4037', '#455a64', '#c2185b'
+  ];
 
   ngOnInit() {
-    // Sample events
-    this.events = [
-      {
-        id: 1,
-        title: 'Team Meeting',
-        start: new Date(2024, 11, 6, 10, 0),
-        end: new Date(2024, 11, 6, 11, 30),
-        color: '#1976d2'
-      },
-      {
-        id: 2,
-        title: 'Lunch Break',
-        start: new Date(2024, 11, 6, 12, 0),
-        end: new Date(2024, 11, 6, 13, 0),
-        color: '#388e3c'
-      }
-    ];
+    this.loadStudentsAndLessons();
   }
 
-  // View management
-  onViewChange(view: CalendarViewType) {
-    this.currentView = view;
-    this.updateDays();
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
-  getVisibleDays(): Date[] {
-    switch (this.currentView) {
-      case 'day':
-        return [this.currentDate];
-      case '3day':
-        return this.days.slice(0, 3);
-      case 'week':
-        return this.days;
-      default:
-        return this.days;
-    }
-  }
-
-  getViewTitle(): string {
-    const monthYear = this.currentDate.toLocaleDateString('default', { month: 'long', year: 'numeric' });
-    if (this.currentView === 'month') {
-      return monthYear;
-    }
-
-    const visibleDays = this.getVisibleDays();
-    const start = visibleDays[0].toLocaleDateString('default', { month: 'short', day: 'numeric' });
-    const end = visibleDays[visibleDays.length - 1].toLocaleDateString('default', { month: 'short', day: 'numeric', year: 'numeric' });
-    return `${start} - ${end}`;
-  }
-
-  // Navigation
-  navigate(direction: 'prev' | 'next') {
-    const amount = this.currentView === 'month' ? 1 :
-      this.currentView === 'week' ? 7 :
-        this.currentView === '3day' ? 3 : 1;
-
-    const days = direction === 'prev' ? -amount : amount;
-    this.currentDate = new Date(this.currentDate.setDate(this.currentDate.getDate() + days));
-    this.updateDays();
-  }
-
-  goToToday() {
-    this.currentDate = new Date();
-    this.updateDays();
-  }
-
-  // Event handling
-  getVisibleEvents(): CalendarEvent[] {
-    const visibleDays = this.getVisibleDays();
-    const start = visibleDays[0];
-    const end = visibleDays[visibleDays.length - 1];
-
-    return this.events.filter(event => {
-      return event.start >= start && event.start <= end;
+  private loadStudentsAndLessons() {
+    this.studentService.getStudents().pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(students => {
+      this.students.set(students);
+      this.loadAllLessons(students);
     });
   }
 
-  getEventWidth(): number {
-    switch (this.currentView) {
-      case 'day':
-        return 95;
-      case '3day':
-        return 31;
-      case 'week':
-        return 13.5;
-      default:
-        return 13.5;
+  private loadAllLessons(students: Student[]) {
+    if (!students.length) {
+      this.lessons.set([]);
+      return;
     }
-  }
 
-  getEventLeft(event: CalendarEvent): number {
-    const dayIndex = this.getVisibleDays().findIndex(day =>
-      this.isSameDay(day, event.start)
+    // Create observables for each student's lessons
+    const lessonObservables = students.map(student => 
+      this.studentService.getStudentLessons(student.id!).pipe(
+        map(lessons => lessons.map(lesson => ({
+          ...lesson,
+          studentName: student.name,
+          color: this.getStudentColor(student.id!)
+        } as CalendarLesson)))
+      )
     );
 
-    switch (this.currentView) {
-      case 'day':
-        return 2;
-      case '3day':
-        return dayIndex * 33 + 1;
-      case 'week':
-        return dayIndex * 14.285;
-      default:
-        return dayIndex * 14.285;
+    // Combine all lesson observables
+    combineLatest(lessonObservables).pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(lessonArrays => {
+      const allLessons = lessonArrays.flat();
+      this.lessons.set(allLessons);
+    });
+  }
+
+  private getStudentColor(studentId: string): string {
+    const hash = studentId.split('').reduce((a, b) => {
+      a = ((a << 5) - a) + b.charCodeAt(0);
+      return a & a;
+    }, 0);
+    return this.studentColors[Math.abs(hash) % this.studentColors.length];
+  }
+
+  // View Management
+  onViewChange(view: CalendarView) {
+    this.currentView.set(view);
+  }
+
+  getViewTitle(): string {
+    const date = this.currentDate();
+    const view = this.currentView();
+    
+    if (view === 'month') {
+      return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    }
+    
+    const visibleDays = this.getVisibleDays();
+    if (view === 'day') {
+      return date.toLocaleDateString('en-US', { 
+        weekday: 'long', 
+        month: 'long', 
+        day: 'numeric', 
+        year: 'numeric' 
+      });
+    }
+    
+    // Week view
+    const start = visibleDays[0];
+    const end = visibleDays[visibleDays.length - 1];
+    
+    if (start.getMonth() === end.getMonth()) {
+      return `${start.toLocaleDateString('en-US', { month: 'long' })} ${start.getDate()}-${end.getDate()}, ${start.getFullYear()}`;
+    } else {
+      return `${start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${end.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
     }
   }
 
-  // Month view specific methods
-  isMonthView(): boolean {
-    return this.currentView === 'month';
+  navigate(direction: 'prev' | 'next') {
+    const current = new Date(this.currentDate());
+    const view = this.currentView();
+    
+    switch (view) {
+      case 'day':
+        current.setDate(current.getDate() + (direction === 'next' ? 1 : -1));
+        break;
+      case 'week':
+        current.setDate(current.getDate() + (direction === 'next' ? 7 : -7));
+        break;
+      case 'month':
+        current.setMonth(current.getMonth() + (direction === 'next' ? 1 : -1));
+        break;
+    }
+    
+    this.currentDate.set(current);
   }
 
-  getMonthWeeks(): Date[][] {
-    const firstDay = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth(), 1);
-    const lastDay = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth() + 1, 0);
+  goToToday() {
+    this.currentDate.set(new Date());
+    this.selectedDate.set(new Date());
+  }
 
+  isCurrentPeriodToday(): boolean {
+    const today = new Date();
+    const current = this.currentDate();
+    const view = this.currentView();
+    
+    if (view === 'day') {
+      return this.isSameDay(today, current);
+    } else if (view === 'week') {
+      const visibleDays = this.getVisibleDays();
+      return visibleDays.some(day => this.isSameDay(day, today));
+    } else {
+      return today.getMonth() === current.getMonth() && today.getFullYear() === current.getFullYear();
+    }
+  }
+
+  // Day/Week View Methods
+  getVisibleDays(): Date[] {
+    const view = this.currentView();
+    const current = this.currentDate();
+    
+    if (view === 'day') {
+      return [new Date(current)];
+    }
+    
+    // Week view
+    const startOfWeek = new Date(current);
+    startOfWeek.setDate(current.getDate() - current.getDay());
+    
+    return Array.from({ length: 7 }, (_, i) => {
+      const day = new Date(startOfWeek);
+      day.setDate(startOfWeek.getDate() + i);
+      return day;
+    });
+  }
+
+  getDisplayHours(): number[] {
+    return Array.from({ length: 24 }, (_, i) => i);
+  }
+
+  formatHour(hour: number): string {
+    if (hour === 0) return '12 AM';
+    if (hour === 12) return '12 PM';
+    if (hour < 12) return `${hour} AM`;
+    return `${hour - 12} PM`;
+  }
+
+  onTimeSlotClick(day: Date, hour: number) {
+    const startTime = new Date(day);
+    startTime.setHours(hour, 0, 0, 0);
+    this.openAddLessonDialog(startTime);
+  }
+
+  isCurrentHour(day: Date, hour: number): boolean {
+    const now = new Date();
+    return this.isSameDay(day, now) && now.getHours() === hour;
+  }
+
+  // Month View Methods
+  getMonthWeeks(): Date[][] {
+    const current = this.currentDate();
+    const firstDay = new Date(current.getFullYear(), current.getMonth(), 1);
+    const lastDay = new Date(current.getFullYear(), current.getMonth() + 1, 0);
+    
     const weeks: Date[][] = [];
     let currentWeek: Date[] = [];
-
-    // Add days from previous month
+    
+    // Add days from previous month to fill the first week
     const firstDayOfWeek = firstDay.getDay();
     for (let i = firstDayOfWeek; i > 0; i--) {
       const day = new Date(firstDay);
       day.setDate(day.getDate() - i);
       currentWeek.push(day);
     }
-
+    
     // Add days of current month
     for (let day = new Date(firstDay); day <= lastDay; day.setDate(day.getDate() + 1)) {
       if (currentWeek.length === 7) {
@@ -192,201 +253,310 @@ export class CalendarComponent implements OnInit {
       }
       currentWeek.push(new Date(day));
     }
-
-    // Add days from next month
+    
+    // Add days from next month to fill the last week
     while (currentWeek.length < 7) {
       const day = new Date(currentWeek[currentWeek.length - 1]);
       day.setDate(day.getDate() + 1);
       currentWeek.push(day);
     }
     weeks.push(currentWeek);
-
+    
     return weeks;
   }
 
-  getEventsForDay(day: Date): CalendarEvent[] {
-    return this.events.filter(event => this.isSameDay(event.start, day));
+  onDayClick(day: Date) {
+    this.selectedDate.set(new Date(day));
+    this.currentDate.set(new Date(day));
+    this.currentView.set('day');
   }
 
-  // Utility methods
-  updateDays() {
-    if (this.currentView === 'month') {
+  onMiniCalendarChange(date: Date | null) {
+    if (!date) {
       return;
     }
+    this.currentDate.set(new Date(date));
+    this.selectedDate.set(new Date(date));
+  }
 
-    const numDays = this.currentView === 'week' ? 7 :
-      this.currentView === '3day' ? 3 : 1;
-
-    const startDate = new Date(this.currentDate);
-    if (this.currentView === 'week') {
-      startDate.setDate(startDate.getDate() - startDate.getDay());
+  // Lesson Methods
+  getVisibleLessons(): CalendarLesson[] {
+    const visibleDays = this.getVisibleDays();
+    const view = this.currentView();
+    
+    if (view === 'month') {
+      const weeks = this.getMonthWeeks();
+      const allVisibleDays = weeks.flat();
+      return this.lessons().filter(lesson => 
+        allVisibleDays.some(day => this.isSameDay(day, lesson.date))
+      );
     }
+    
+    return this.lessons().filter(lesson => 
+      visibleDays.some(day => this.isSameDay(day, lesson.date))
+    );
+  }
 
-    this.days = Array.from({ length: numDays }, (_, i) => {
-      const day = new Date(startDate);
-      day.setDate(day.getDate() + i);
-      return day;
-    });
+  getLessonsForDay(day: Date): CalendarLesson[] {
+    return this.lessons().filter(lesson => this.isSameDay(lesson.date, day));
+  }
+
+  getLessonTop(lesson: CalendarLesson): number {
+    const startTime = this.parseTimeString(lesson.startTime);
+    const [hours, minutes] = startTime;
+    return hours * 60 + minutes; // 60px per hour
+  }
+
+  getLessonLeft(lesson: CalendarLesson): number {
+    const visibleDays = this.getVisibleDays();
+    const dayIndex = visibleDays.findIndex(day => this.isSameDay(day, lesson.date));
+    
+    if (dayIndex === -1) return 0;
+    
+    const view = this.currentView();
+    if (view === 'day') return 2;
+    
+    return (dayIndex * (100 / visibleDays.length)) + 1;
+  }
+
+  getLessonWidth(): number {
+    const view = this.currentView();
+    const visibleDays = this.getVisibleDays();
+    
+    if (view === 'day') return 96;
+    
+    return (100 / visibleDays.length) - 2;
+  }
+
+  getLessonHeight(lesson: CalendarLesson): number {
+    return Math.max(30, lesson.duration); // minimum 30px height
+  }
+
+  getLessonTimeString(lesson: CalendarLesson): string {
+    if (!lesson.startTime) return '';
+    
+    const startTime = this.parseTimeString(lesson.startTime);
+    const [hours, minutes] = startTime;
+    
+    // Calculate end time
+    const startMinutes = hours * 60 + minutes;
+    const endMinutes = startMinutes + lesson.duration;
+    const endHours = Math.floor(endMinutes / 60);
+    const endMins = endMinutes % 60;
+    
+    const formatTime = (h: number, m: number) => {
+      const period = h >= 12 ? 'PM' : 'AM';
+      const displayHour = h === 0 ? 12 : h > 12 ? h - 12 : h;
+      return `${displayHour}:${m.toString().padStart(2, '0')} ${period}`;
+    };
+    
+    return `${formatTime(hours, minutes)} - ${formatTime(endHours, endMins)}`;
+  }
+
+  getLessonTooltip(lesson: CalendarLesson): string {
+    return `${lesson.studentName}\n${this.getLessonTimeString(lesson)}\nDuration: ${lesson.duration} minutes${lesson.notes ? `\nNotes: ${lesson.notes}` : ''}`;
+  }
+
+  onLessonClick(lesson: CalendarLesson, event: Event) {
+    event.stopPropagation();
+    this.editLesson(lesson);
+  }
+
+  // Drag and Drop
+  onLessonDragEnd(event: CdkDragEnd, lesson: CalendarLesson) {
+    const element = event.source.element.nativeElement;
+    const rect = element.getBoundingClientRect();
+    const container = document.querySelector('.time-grid')?.getBoundingClientRect();
+    
+    if (!container) return;
+    
+    // Calculate new time
+    const minutesFromTop = Math.round((rect.top - container.top) / 60) * 60;
+    const newHour = Math.floor(minutesFromTop / 60);
+    const newMinutes = minutesFromTop % 60;
+    
+    // Calculate new day
+    const dayWidth = container.width / this.getVisibleDays().length;
+    const dayIndex = Math.floor((rect.left - container.left) / dayWidth);
+    const newDay = this.getVisibleDays()[dayIndex];
+    
+    if (!newDay || newHour < 0 || newHour > 23) {
+      event.source.reset();
+      return;
+    }
+    
+    // Update lesson
+    const newDate = new Date(newDay);
+    const newStartTime = `${newHour.toString().padStart(2, '0')}:${newMinutes.toString().padStart(2, '0')}`;
+    
+    this.updateLesson(lesson, newDate, newStartTime);
+    event.source.reset();
+  }
+
+  startResize(event: MouseEvent, lesson: CalendarLesson) {
+    event.preventDefault();
+    event.stopPropagation();
+    
+    const startY = event.clientY;
+    const originalDuration = lesson.duration;
+    
+    const onMouseMove = (e: MouseEvent) => {
+      const deltaY = e.clientY - startY;
+      const newDuration = Math.max(15, originalDuration + deltaY); // minimum 15 minutes
+      
+      // Update lesson duration temporarily for visual feedback
+      const updatedLessons = this.lessons().map(l => 
+        l.id === lesson.id ? { ...l, duration: newDuration } : l
+      );
+      this.lessons.set(updatedLessons);
+    };
+    
+    const onMouseUp = () => {
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+      
+      // Save the final duration
+      this.updateLessonDuration(lesson);
+    };
+    
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+  }
+
+  // Dialog Methods
+  openAddLessonDialog(startTime?: Date) {
+    // Import and open lesson dialog - you'll need to create this component
+    // For now, we'll use a simple prompt
+    const studentName = prompt('Student name:');
+    if (!studentName) return;
+    
+    const student = this.students().find(s => 
+      s.name.toLowerCase().includes(studentName.toLowerCase())
+    );
+    
+    if (!student) {
+      alert('Student not found');
+      return;
+    }
+    
+    const date = startTime || this.selectedDate();
+    const time = startTime ? 
+      `${startTime.getHours().toString().padStart(2, '0')}:${startTime.getMinutes().toString().padStart(2, '0')}` :
+      '09:00';
+    
+    this.createLesson(student, date, time);
+  }
+
+  private async createLesson(student: Student, date: Date, startTime: string) {
+    try {
+      const newLesson: Lesson = {
+        date,
+        startTime,
+        duration: 45, // default duration
+        cost: 50, // default cost
+        notes: '',
+        isPaid: false,
+        status: 'scheduled',
+        createdAt: new Date()
+      };
+      
+      await this.studentService.addLesson(student.id!, newLesson);
+      
+      // Reload lessons to get the updated list
+      this.loadAllLessons(this.students());
+    } catch (error) {
+      console.error('Error creating lesson:', error);
+      alert('Failed to create lesson');
+    }
+  }
+
+  private editLesson(lesson: CalendarLesson) {
+    // Open edit dialog - for now use prompts
+    const newNotes = prompt('Lesson notes:', lesson.notes || '');
+    if (newNotes !== null) {
+      // Update lesson notes
+      this.updateLessonNotes(lesson, newNotes);
+    }
+  }
+
+  private async updateLesson(lesson: CalendarLesson, newDate: Date, newStartTime: string) {
+    try {
+      const student = this.students().find(s => s.name === lesson.studentName);
+      if (!student) return;
+      
+      // Update lesson in Firebase
+      await this.studentService.updateLesson(student.id!, lesson.id!, {
+        date: newDate,
+        startTime: newStartTime
+      });
+      
+      // Reload lessons
+      this.loadAllLessons(this.students());
+    } catch (error) {
+      console.error('Error updating lesson:', error);
+    }
+  }
+
+  private async updateLessonDuration(lesson: CalendarLesson) {
+    try {
+      const student = this.students().find(s => s.name === lesson.studentName);
+      if (!student) return;
+      
+      await this.studentService.updateLesson(student.id!, lesson.id!, {
+        duration: lesson.duration
+      });
+    } catch (error) {
+      console.error('Error updating lesson duration:', error);
+    }
+  }
+
+  private async updateLessonNotes(lesson: CalendarLesson, notes: string) {
+    try {
+      const student = this.students().find(s => s.name === lesson.studentName);
+      if (!student) return;
+      
+      await this.studentService.updateLesson(student.id!, lesson.id!, {
+        notes
+      });
+      
+      // Update local state
+      const updatedLessons = this.lessons().map(l =>
+        l.id === lesson.id ? { ...l, notes } : l
+      );
+      this.lessons.set(updatedLessons);
+    } catch (error) {
+      console.error('Error updating lesson notes:', error);
+    }
+  }
+
+  // Utility Methods
+  private parseTimeString(timeString: string): [number, number] {
+    const [hours, minutes] = timeString.split(':').map(Number);
+    return [hours || 0, minutes || 0];
   }
 
   isSameDay(date1: Date, date2: Date): boolean {
     return date1.getDate() === date2.getDate() &&
-      date1.getMonth() === date2.getMonth() &&
-      date1.getFullYear() === date2.getFullYear();
+           date1.getMonth() === date2.getMonth() &&
+           date1.getFullYear() === date2.getFullYear();
   }
 
   isSameMonth(date: Date): boolean {
-    return date.getMonth() === this.currentDate.getMonth();
+    const current = this.currentDate();
+    return date.getMonth() === current.getMonth() &&
+           date.getFullYear() === current.getFullYear();
   }
 
   isToday(date: Date): boolean {
     return this.isSameDay(date, new Date());
   }
 
-  // Event methods remain the same as before
-  getEventTop(event: CalendarEvent): number {
-    const hours = event.start.getHours();
-    const minutes = event.start.getMinutes();
-    return hours * 60 + minutes;
+  isSelected(date: Date): boolean {
+    return this.isSameDay(date, this.selectedDate());
   }
 
-  getEventHeight(event: CalendarEvent): number {
-    const diff = event.end.getTime() - event.start.getTime();
-    return Math.max(30, diff / (1000 * 60));
-  }
-
-  openAddEventDialog(day?: Date, hour?: number) {
-    const dialogRef = this.dialog.open(AddEventDialogComponent, {
-      width: '400px',
-      data: {
-        date: day || new Date(),
-        hour: hour || new Date().getHours()
-      }
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        this.events.push({
-          id: this.events.length + 1,
-          ...result
-        });
-      }
-    });
-  }
-
-  onDayClick(day: Date) {
-    this.currentDate = new Date(day);
-    this.currentView = 'day';
-    this.updateDays();
-  }
-
-  editEvent(event: CalendarEvent) {
-    const dialogRef = this.dialog.open(AddEventDialogComponent, {
-      width: '400px',
-      data: { event }
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        const index = this.events.findIndex(e => e.id === event.id);
-        if (index !== -1) {
-          this.events[index] = { ...event, ...result };
-        }
-      }
-    });
-  }
-
-  onEventDragEnded(event: CdkDragEnd, calendarEvent: CalendarEvent) {
-    const element = event.source.element.nativeElement;
-    const rect = element.getBoundingClientRect();
-    const gridRect = document.querySelector('.calendar-grid')?.getBoundingClientRect();
-
-    if (!gridRect) return;
-
-    // Calculate new time based on position
-    const minutesFromTop = Math.round((rect.top - gridRect.top - 41) / 60) * 60;
-    const dayWidth = gridRect.width / this.getVisibleDays().length;
-    const dayIndex = Math.floor((rect.left - gridRect.left) / dayWidth);
-
-    // Get the new day
-    const newDay = this.getVisibleDays()[dayIndex];
-    if (!newDay) return;
-
-    // Update event time
-    const newStart = new Date(newDay);
-    newStart.setHours(Math.floor(minutesFromTop / 60));
-    newStart.setMinutes(minutesFromTop % 60);
-
-    const duration = calendarEvent.end.getTime() - calendarEvent.start.getTime();
-    const newEnd = new Date(newStart.getTime() + duration);
-
-    // Update the event
-    calendarEvent.start = newStart;
-    calendarEvent.end = newEnd;
-
-    // Reset the drag
-    event.source.reset();
-  }
-
-  onMonthEventDragEnded(event: CdkDragEnd, calendarEvent: CalendarEvent, originalDay: Date) {
-    const element = event.source.element.nativeElement;
-    const targetDay = this.findDayFromPoint(element.getBoundingClientRect().left, element.getBoundingClientRect().top);
-
-    if (targetDay) {
-      // Calculate the time difference
-      const daysDiff = Math.round((targetDay.getTime() - originalDay.getTime()) / (1000 * 60 * 60 * 24));
-
-      // Update event dates
-      calendarEvent.start = new Date(calendarEvent.start.getTime() + daysDiff * 24 * 60 * 60 * 1000);
-      calendarEvent.end = new Date(calendarEvent.end.getTime() + daysDiff * 24 * 60 * 60 * 1000);
-
-      // Reset the drag
-      event.source.reset();
-    }
-  }
-
-  findDayFromPoint(x: number, y: number): Date | null {
-    const elements = document.elementsFromPoint(x, y);
-    const dayElement = elements.find(el => el.classList.contains('day'));
-    if (!dayElement) return null;
-
-    const weekElement = dayElement.parentElement;
-    if (!weekElement) return null;
-
-    const weekIndex = Array.from(weekElement.parentElement?.children || []).indexOf(weekElement);
-    const dayIndex = Array.from(dayElement.parentElement?.children || []).indexOf(dayElement);
-
-    const weeks = this.getMonthWeeks();
-    return weeks[weekIndex]?.[dayIndex] || null;
-  }
-
-  // Event resizing functionality
-  startResize(event: MouseEvent, calendarEvent: CalendarEvent) {
-    event.preventDefault();
-    event.stopPropagation();
-
-    this.draggedEvent = calendarEvent;
-    this.resizeStartY = event.clientY;
-    this.originalEventHeight = this.getEventHeight(calendarEvent);
-
-    const onMouseMove = (e: MouseEvent) => {
-      if (!this.draggedEvent) return;
-
-      const deltaY = e.clientY - this.resizeStartY;
-      const newHeight = Math.max(30, this.originalEventHeight + deltaY);
-
-      // Update event end time
-      const newEnd = new Date(this.draggedEvent.start.getTime() + newHeight * 60 * 1000);
-      this.draggedEvent.end = newEnd;
-    };
-
-    const onMouseUp = () => {
-      this.draggedEvent = null;
-      document.removeEventListener('mousemove', onMouseMove);
-      document.removeEventListener('mouseup', onMouseUp);
-    };
-
-    document.addEventListener('mousemove', onMouseMove);
-    document.addEventListener('mouseup', onMouseUp);
-  }
+  dateFilter = (date: Date | null): boolean => {
+    // You can add custom date filtering logic here
+    return true;
+  };
 }

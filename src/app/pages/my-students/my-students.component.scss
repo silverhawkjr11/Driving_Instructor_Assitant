@@ -530,7 +530,15 @@
         font-size: 16px;
         width: 16px;
         height: 16px;
-        color: rgba(255, 255, 255, 0.5);
+      }
+
+      .lesson-time {
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.6);
+        background: rgba(255, 255, 255, 0.1);
+        padding: 2px 6px;
+        border-radius: 4px;
+        margin-top: 4px;
       }
     }
 
@@ -624,7 +632,7 @@
 
   .form-row {
     display: grid;
-    grid-template-columns: 1fr 120px 120px;
+    grid-template-columns: 1fr 250px;
     gap: 16px;
     margin-bottom: 16px;
 

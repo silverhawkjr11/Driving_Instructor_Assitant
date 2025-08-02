@@ -1,0 +1,47 @@
+// schedule.component.scss
+.schedule-page {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--mat-app-background-color, #fafafa);
+
+  .page-header {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    
+    mat-icon {
+      font-size: 24px;
+    }
+    
+    span {
+      font-size: 1.25rem;
+      font-weight: 500;
+    }
+  }
+
+  .schedule-content {
+    flex: 1;
+    min-height: 0;
+    padding: 0;
+    
+    app-calendar {
+      height: 100%;
+      display: block;
+    }
+  }
+}
+
+// Ensure the calendar respects the theme colors
+::ng-deep app-calendar {
+  --calendar-primary: var(--mat-primary-500);
+  --calendar-primary-light: var(--mat-primary-100);
+  --calendar-primary-dark: var(--mat-primary-700);
+  --calendar-accent: var(--mat-accent-500);
+  --calendar-background: var(--mat-card-background-color);
+  --calendar-surface: var(--mat-app-background-color);
+  --calendar-text: var(--mat-text-primary-color);
+  --calendar-text-secondary: var(--mat-text-secondary-color);
+  --calendar-divider: var(--mat-divider-color);
+}
