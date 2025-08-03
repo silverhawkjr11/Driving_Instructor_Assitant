@@ -5,17 +5,31 @@
   padding: 16px;
   gap: 16px;
   background: var(--mat-app-background-color, #fafafa);
-  
-  // Calendar Header
-  .calendar-header-card {
-    flex-shrink: 0;
-    
-    .calendar-header {
+
+  .calendar-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
       gap: 16px;
+
+      .add-lesson-btn {
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: white;
+          border-radius: 25px;
+          padding: 12px 24px;
+          font-weight: 500;
+          letter-spacing: 0.5px;
+          box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+          transition: all 0.3s ease;
+          border: none;
+          min-width: 140px;
+          height: 48px;
+          
+          mat-icon {
+            margin-right: 8px;
+          }
+        }
       
       .navigation-section {
         display: flex;
@@ -70,17 +84,12 @@
             }
           }
         }
-        
-        .add-lesson-btn {
-          border-radius: 8px;
-          font-weight: 500;
-          
-          mat-icon {
-            margin-right: 8px;
-          }
-        }
       }
     }
+  
+  // Calendar Header
+  .calendar-header-card {
+    flex-shrink: 0;
   }
   
   // Calendar Content

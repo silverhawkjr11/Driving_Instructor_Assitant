@@ -13,6 +13,10 @@ import { Subject, takeUntil, combineLatest, map } from 'rxjs';
 import { StudentService } from '../services/student.service';
 import { Student } from '../../models/student.model';
 import { Lesson } from '../../models/lesson.model';
+import { FullCalendarModule } from '@fullcalendar/angular';
+import { CalendarOptions } from '@fullcalendar/core'; // useful for typechecking
+import dayGridPlugin from '@fullcalendar/daygrid';
+import timeGridPlugin from '@fullcalendar/timegrid';
 
 export type CalendarView = 'day' | 'week' | 'month';
 
@@ -34,7 +38,9 @@ interface CalendarLesson extends Lesson {
     MatDatepickerModule,
     MatNativeDateModule,
     MatDialogModule,
-    DragDropModule
+    DragDropModule,
+    CommonModule,
+    FullCalendarModule
   ],
   templateUrl: './calendar.component.html',
   styleUrls: ['./calendar.component.scss']
@@ -53,6 +59,19 @@ export class CalendarComponent implements OnInit, OnDestroy {
   
   // Computed values
   weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+  calendarOptions: CalendarOptions = {
+    initialView: 'timeGridWeek',
+    plugins: [
+      dayGridPlugin,
+      timeGridPlugin
+    ],
+    headerToolbar: {
+      left: 'prev,next today',
+      center: 'title',
+      right: 'dayGridMonth,timeGridWeek,timeGridDay'
+    },
+  };
   
   // Student colors for consistent lesson display
   private studentColors = [
