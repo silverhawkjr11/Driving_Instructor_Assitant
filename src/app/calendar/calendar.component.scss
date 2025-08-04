@@ -126,6 +126,8 @@
     
     // Day grid month view
     .fc-daygrid {
+        --fc-page-bg-color: var(--mat-app-background-color);
+
       .fc-col-header {
         background: var(--mat-primary-50);
         

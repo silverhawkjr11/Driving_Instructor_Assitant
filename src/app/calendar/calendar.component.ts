@@ -188,13 +188,32 @@ export class CalendarComponent implements OnInit, OnDestroy {
   }
 
   private createLessonDateTime(lesson: CalendarLesson): Date {
-    const lessonDate = new Date(lesson.date);
-    if (lesson.startTime) {
+  const lessonDate = new Date(lesson.date);
+  
+  // Check if startTime exists and is a valid string
+  if (lesson.startTime && typeof lesson.startTime === 'string' && lesson.startTime.includes(':')) {
+    try {
       const [hours, minutes] = lesson.startTime.split(':').map(Number);
-      lessonDate.setHours(hours, minutes, 0, 0);
+      // Validate the parsed hours and minutes
+      if (!isNaN(hours) && !isNaN(minutes) && hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59) {
+        lessonDate.setHours(hours, minutes, 0, 0);
+      } else {
+        // Fallback to default time if parsing fails
+        console.warn(`Invalid time format for lesson ${lesson.id}: ${lesson.startTime}`);
+        lessonDate.setHours(9, 0, 0, 0); // Default to 9:00 AM
+      }
+    } catch (error) {
+      console.error(`Error parsing startTime for lesson ${lesson.id}:`, error);
+      lessonDate.setHours(9, 0, 0, 0); // Default to 9:00 AM
     }
-    return lessonDate;
+  } else {
+    // Default time if startTime is not available or invalid
+    console.warn(`Missing or invalid startTime for lesson ${lesson.id}:`, lesson.startTime);
+    lessonDate.setHours(9, 0, 0, 0); // Default to 9:00 AM
   }
+  
+  return lessonDate;
+}
 
   private getStudentColor(studentId: string): string {
     const hash = studentId.split('').reduce((a, b) => {
