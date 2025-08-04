@@ -1288,11 +1288,17 @@ html .mat-mdc-icon-button.mat-warn{
     --mat-icon-button-state-layer-color:#f44336;
     --mat-icon-button-ripple-color:rgba(244, 67, 54, 0.1)
 }
-html{--mat-icon-button-touch-target-display:block}.mat-mdc-icon-button.mat-mdc-button-base{
+html{--mat-icon-button-touch-target-display:block}
+.mat-mdc-icon-button.mat-mdc-button-base{
+    color: var(--mdc-icon-button-icon-color);
     --mdc-icon-button-state-layer-size: 48px;
     width:var(--mdc-icon-button-state-layer-size);
     height:var(--mdc-icon-button-state-layer-size);
     padding:12px
+}
+
+.mat-mdc-form-field-icon-suffix{
+    color: var(--mdc-icon-button-icon-color);
 }
 html{
     --mdc-fab-container-shape:50%;
@@ -1804,10 +1810,6 @@ html{--mat-timepicker-container-background-color:white}.mat-h1,.mat-headline-5,.
   color: var(--mat-sys-on-surface, rgba(0, 0, 0, 0.87)) !important;
 }
 
-.mat-mdc-form-field .mat-mdc-floating-label {
-  color: var(--mat-sys-on-surface-variant, rgba(0, 0, 0, 0.6)) !important;
-}
-
 /* Fix card text colors */
 .mat-mdc-card {
   color: var(--mat-sys-on-surface, rgba(0, 0, 0, 0.87)) !important;
@@ -1972,11 +1974,6 @@ html{--mat-timepicker-container-background-color:white}.mat-h1,.mat-headline-5,.
 body {
   background-color: var(--mat-sys-background, #fafafa);
   color: var(--mat-sys-on-background, rgba(0, 0, 0, 0.87));
-}
-
-/* Fix for any remaining white text on white background issues */
-*:not(.mat-toolbar):not(.mat-mdc-raised-button):not(.mat-mdc-unelevated-button):not(.mat-mdc-fab):not(.mat-primary):not(.mat-accent):not(.mat-warn) {
-  color: var(--mat-sys-on-surface, rgba(0, 0, 0, 0.87));
 }
 
 /* Override for theme-specific icon colors */

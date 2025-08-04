@@ -171,12 +171,6 @@ html{
 	--mat-sys-pressed-state-layer-opacity: 0.12
 }
 
-.mat-toolbar.mat-primary,
-.mat-toolbar[color="primary"] {
-  /* Ensure toolbar text is always visible */
-  color: white !important;
-}
-
 /* Fix form field text colors on light backgrounds */
 .mat-mdc-form-field .mat-mdc-form-field-input-control {
   color: var(--mat-sys-on-surface, rgba(0, 0, 0, 0.87)) !important;
@@ -202,11 +196,6 @@ html{
 /* Fix button text colors */
 .mat-mdc-button:not(.mat-mdc-raised-button):not(.mat-mdc-unelevated-button) {
   color: var(--mat-sys-primary, #1976d2) !important;
-}
-
-/* Fix icon colors in various contexts */
-.mat-icon:not(.mat-primary):not(.mat-accent):not(.mat-warn) {
-  color: var(--mat-sys-on-surface-variant, rgba(0, 0, 0, 0.6)) !important;
 }
 
 /* Fix navigation and menu item colors */
@@ -359,11 +348,6 @@ html{
 body {
   background-color: var(--mat-sys-background, #fafafa);
   color: var(--mat-sys-on-background, rgba(0, 0, 0, 0.87));
-}
-
-/* Fix for any remaining white text on white background issues */
-*:not(.mat-toolbar):not(.mat-mdc-raised-button):not(.mat-mdc-unelevated-button):not(.mat-mdc-fab):not(.mat-primary):not(.mat-accent):not(.mat-warn) {
-  color: var(--mat-sys-on-surface, rgba(0, 0, 0, 0.87));
 }
 
 /* Override for theme-specific icon colors */

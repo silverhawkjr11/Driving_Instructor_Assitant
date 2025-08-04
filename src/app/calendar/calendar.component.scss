@@ -3,7 +3,7 @@
   flex-direction: column;
   padding: 16px;
   gap: 16px;
-  background: var(--mat-app-background-color, #fafafa);
+  background: var(--mat-app-background-color, var(--mat-sys-background));
 
   .calendar-header {
     display: flex;
@@ -56,7 +56,6 @@
 // FullCalendar Custom Styling
 ::ng-deep {
   .fc {
-    height: calc(100vh - 120px) !important;
     
     // Header customization
     .fc-header-toolbar {
