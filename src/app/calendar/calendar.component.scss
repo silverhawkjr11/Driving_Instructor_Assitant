@@ -1,7 +1,6 @@
 .calendar-container {
   display: flex;
   flex-direction: column;
-  height: 100vh;
   padding: 16px;
   gap: 16px;
   background: var(--mat-app-background-color, #fafafa);
@@ -62,7 +61,6 @@
     // Header customization
     .fc-header-toolbar {
       padding: 16px;
-      background: var(--mat-primary-50);
       border-radius: 8px 8px 0 0;
       margin-bottom: 0;
       
@@ -75,22 +73,8 @@
       .fc-button-group {
         .fc-button {
           border-radius: 8px;
-          border: 1px solid var(--mat-primary-200);
-          color: var(--mat-primary-700);
           font-weight: 500;
           padding: 8px 16px;
-          transition: all 0.2s ease;
-          
-          &:hover {
-            background: var(--mat-primary-100);
-            border-color: var(--mat-primary-300);
-          }
-          
-          &.fc-button-active {
-            background: var(--mat-primary-500);
-            border-color: var(--mat-primary-500);
-            color: white;
-          }
           
           &:focus {
             box-shadow: 0 0 0 2px var(--mat-primary-200);
@@ -99,28 +83,18 @@
       }
       
       .fc-today-button {
-        background: var(--mat-accent-500);
-        border-color: var(--mat-accent-500);
-        color: white;
         border-radius: 20px;
-        
-        &:hover {
-          background: var(--mat-accent-600);
-          border-color: var(--mat-accent-600);
-        }
       }
       
       .fc-toolbar-title {
         font-size: 1.5rem;
         font-weight: 600;
-        color: var(--mat-primary-700);
         margin: 0 16px;
       }
     }
     
     // Calendar grid
     .fc-view-harness {
-      background: white;
       border-radius: 0 0 8px 8px;
     }
     
@@ -133,10 +107,8 @@
         
         .fc-col-header-cell {
           padding: 12px 8px;
-          border-bottom: 2px solid var(--mat-primary-100);
           
           .fc-col-header-cell-cushion {
-            color: var(--mat-primary-700);
             font-weight: 600;
             text-transform: uppercase;
             font-size: 0.875rem;
@@ -146,19 +118,10 @@
       }
       
       .fc-daygrid-day {
-        border-color: var(--mat-divider-color);
-        transition: background-color 0.2s ease;
-        
-        &:hover {
-          background: var(--mat-primary-25);
-        }
         
         &.fc-day-today {
-          background: var(--mat-primary-50);
           
           .fc-daygrid-day-number {
-            background: var(--mat-primary-500);
-            color: white;
             border-radius: 50%;
             width: 28px;
             height: 28px;
@@ -172,7 +135,6 @@
         .fc-daygrid-day-number {
           padding: 8px;
           font-weight: 500;
-          color: var(--mat-text-primary);
         }
       }
     }
@@ -182,47 +144,32 @@
       --fc-page-bg-color: var(--mat-app-background-color);
 
       .fc-col-header {
-        background: var(--mat-primary-50);
         
         .fc-col-header-cell-cushion {
-          color: var(--mat-primary-700);
           font-weight: 600;
           padding: 8px;
         }
       }
       
       .fc-timegrid-slot {
-        border-color: var(--mat-divider-color);
         height: 40px;
         
         &.fc-timegrid-slot-label {
-          border-right: 2px solid var(--mat-divider-color);
           
           .fc-timegrid-slot-label-cushion {
-            color: var(--mat-text-secondary);
             font-size: 0.75rem;
             padding: 4px 8px;
           }
         }
-        
-        &:hover {
-          background: var(--mat-primary-25);
-        }
       }
       
       .fc-timegrid-now-indicator-line {
-        border-color: var(--mat-accent-500);
         border-width: 2px;
-      }
-      
-      .fc-timegrid-now-indicator-arrow {
-        border-left-color: var(--mat-accent-500);
       }
     }
     
     // Business hours styling
     .fc-non-business {
-      background: var(--mat-divider-color);
       opacity: 0.3;
     }
     
@@ -264,7 +211,6 @@
     
     // Selection styling
     .fc-highlight {
-      background: var(--mat-primary-100);
       opacity: 0.7;
     }
     
@@ -274,17 +220,8 @@
         width: 8px;
       }
       
-      &::-webkit-scrollbar-track {
-        background: var(--mat-app-background-color);
-      }
-      
       &::-webkit-scrollbar-thumb {
-        background: var(--mat-divider-color);
         border-radius: 4px;
-        
-        &:hover {
-          background: var(--mat-text-secondary);
-        }
       }
     }
   }
@@ -330,35 +267,6 @@
     
     .fc-timegrid-slot-label .fc-timegrid-slot-label-cushion {
       font-size: 0.6rem;
-    }
-  }
-}
-
-// Dark theme support
-@media (prefers-color-scheme: dark) {
-  .calendar-container {
-    background: var(--mat-app-background-color, #303030);
-  }
-  
-  ::ng-deep .fc {
-    .fc-event {
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-      
-      &:hover {
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
-      }
-    }
-    
-    .fc-view-harness {
-      background: var(--mat-card-background-color, #424242);
-    }
-    
-    .fc-col-header {
-      background: var(--mat-primary-900) !important;
-    }
-    
-    .fc-daygrid-day.fc-day-today {
-      background: var(--mat-primary-900);
     }
   }
 }
