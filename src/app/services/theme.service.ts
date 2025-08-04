@@ -1,4 +1,4 @@
-// theme.service.ts - Fixed version that always creates fresh theme links
+// theme.service.ts - Fixed version that properly applies themes on navigation
 import { Injectable, PLATFORM_ID, Inject } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { isPlatformBrowser } from '@angular/common';
@@ -41,27 +41,30 @@ export class ThemeService {
     const savedTheme = localStorage.getItem(this.THEME_KEY) || this.DEFAULT_THEME;
     this.currentTheme.next(savedTheme);
     
-    if (!this.isLoginPage()) {
-      this.applyTheme(savedTheme);
-    }
+    // Apply theme immediately, regardless of current route
+    // We'll let the router listener handle login page logic
+    this.applyTheme(savedTheme);
   }
 
   private setupRouterListener(): void {
     this.router.events.pipe(
       filter(event => event instanceof NavigationEnd)
     ).subscribe((event: NavigationEnd) => {
-      if (this.isLoginPage(event.url)) {
-        this.removeTheme();
-      } else {
-        const currentTheme = this.currentTheme.value;
-        this.applyTheme(currentTheme);
-      }
+      // Small delay to ensure the route has fully loaded
+      setTimeout(() => {
+        if (this.isLoginPage(event.url)) {
+          this.removeTheme();
+        } else {
+          const currentTheme = this.currentTheme.value;
+          this.applyTheme(currentTheme);
+        }
+      }, 0);
     });
   }
 
   private isLoginPage(url?: string): boolean {
     const currentUrl = url || this.router.url;
-    return currentUrl === '/login' || currentUrl === '/' || currentUrl.startsWith('/login');
+    return currentUrl === '/login' || currentUrl.startsWith('/login');
   }
 
   setTheme(themeUrl: string): void {
@@ -69,6 +72,7 @@ export class ThemeService {
       localStorage.setItem(this.THEME_KEY, themeUrl);
       this.currentTheme.next(themeUrl);
       
+      // Always apply the theme immediately when set
       if (!this.isLoginPage()) {
         this.applyTheme(themeUrl);
       }
@@ -94,10 +98,13 @@ export class ThemeService {
     const cacheBuster = `?v=${Date.now()}`;
     themeLink.href = themeUrl + cacheBuster;
     
+    // Add onload handler to track when theme is applied
+    themeLink.onload = () => {
+      this.isThemeApplied = true;
+    };
+    
     // Add the new theme link to head
     head.appendChild(themeLink);
-    
-    this.isThemeApplied = true;
   }
 
   private removeTheme(): void {

@@ -1,25 +1,71 @@
 <div class="settings-container">
+  <!-- Theme Settings Card -->
   <mat-card class="settings-card">
     <mat-card-header>
       <mat-card-title>
         <mat-icon>palette</mat-icon>
-        Theme Settings
+        {{ 'theme_settings' | translate }}
       </mat-card-title>
-      <mat-card-subtitle>Choose your preferred color theme</mat-card-subtitle>
+      <mat-card-subtitle>{{ 'choose_theme_subtitle' | translate }}</mat-card-subtitle>
     </mat-card-header>
     
     <mat-card-content>
       <div class="theme-selection">
         <mat-form-field appearance="outline" class="theme-selector">
-          <mat-label>Select Theme</mat-label>
+          <mat-label>{{ 'select_theme' | translate }}</mat-label>
           <mat-select [value]="currentTheme" (selectionChange)="onThemeChange($event.value)">
             <mat-option *ngFor="let theme of themeService.themes" [value]="theme.value">
-              {{ theme.name }}
+              {{ theme.name | translate }}
             </mat-option>
           </mat-select>
           <mat-icon matSuffix>color_lens</mat-icon>
         </mat-form-field>
         
+        <div class="current-theme-info">
+          <p><strong>{{ 'current_theme' | translate }}:</strong> {{ getCurrentThemeName() | translate }}</p>
+          <p class="theme-note">
+            <mat-icon>info</mat-icon>
+            {{ 'theme_applies_all_pages' | translate }}
+          </p>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Language Settings Card -->
+  <mat-card class="settings-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>language</mat-icon>
+        {{ 'language_settings' | translate }}
+      </mat-card-title>
+      <mat-card-subtitle>{{ 'choose_language_subtitle' | translate }}</mat-card-subtitle>
+    </mat-card-header>
+    
+    <mat-card-content>
+      <div class="language-selection">
+        <mat-form-field appearance="outline" class="language-selector">
+          <mat-label>{{ 'select_language' | translate }}</mat-label>
+          <mat-select [value]="translationService.currentLanguage$().code" 
+                      (selectionChange)="onLanguageChange($event.value)">
+            <mat-option *ngFor="let language of translationService.supportedLanguages" [value]="language.code">
+              <span class="language-option">
+                <span class="flag">{{ language.flag }}</span>
+                <span class="language-name">{{ language.nativeName }}</span>
+                <span class="language-english">({{ language.name }})</span>
+              </span>
+            </mat-option>
+          </mat-select>
+          <mat-icon matSuffix>translate</mat-icon>
+        </mat-form-field>
+        
+        <div class="current-language-info">
+          <p><strong>{{ 'current_language' | translate }}:</strong> {{ translationService.currentLanguage$().nativeName }}</p>
+          <p class="language-note">
+            <mat-icon>info</mat-icon>
+            {{ 'language_reload_note' | translate }}
+          </p>
+        </div>
       </div>
     </mat-card-content>
   </mat-card>

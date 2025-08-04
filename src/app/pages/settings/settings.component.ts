@@ -6,6 +6,8 @@ import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { CommonModule } from '@angular/common';
 import { ThemeService } from '../../services/theme.service';
+import { TranslationService } from '../../services/translation.service';
+import { TranslatePipe } from '../../pipes/translate.pipe';
 import { Subject, takeUntil } from 'rxjs';
 
 @Component({
@@ -18,14 +20,18 @@ import { Subject, takeUntil } from 'rxjs';
     MatSelectModule,
     MatCardModule,
     MatIconModule,
-    CommonModule
+    CommonModule,
+    TranslatePipe
   ]
 })
 export class SettingsComponent implements OnInit, OnDestroy {
   currentTheme: string = '';
   private destroy$ = new Subject<void>();
 
-  constructor(public themeService: ThemeService) { }
+  constructor(
+    public themeService: ThemeService,
+    public translationService: TranslationService
+  ) { }
 
   ngOnInit(): void {
     // Subscribe to current theme changes
@@ -43,6 +49,17 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
   onThemeChange(themeUrl: string): void {
     this.themeService.setTheme(themeUrl);
+  }
+
+  onLanguageChange(languageCode: string): void {
+    const language = this.translationService.supportedLanguages.find(lang => lang.code === languageCode);
+    if (language) {
+      this.translationService.setLanguage(language);
+      // Trigger page reload for proper direction and layout changes
+      setTimeout(() => {
+        window.location.reload();
+      }, 100);
+    }
   }
 
   getCurrentThemeName(): string {

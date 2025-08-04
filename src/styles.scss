@@ -36,3 +36,22 @@ body {
 
 html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+/* Simplified approach - just remove problematic direction overrides */
+
+/* Remove the complex form field direction overrides and let Angular Material handle it naturally */
+
+/* Only keep essential layout fixes */
+.language-menu .mat-mdc-menu-content {
+  direction: ltr !important; /* Keep menu structure LTR */
+  
+  .mat-mdc-menu-item {
+    direction: ltr !important; /* Keep item layout LTR */
+    
+    .language-name {
+      /* Allow language names to display naturally */
+      direction: inherit;
+      unicode-bidi: plaintext;
+    }
+  }
+}

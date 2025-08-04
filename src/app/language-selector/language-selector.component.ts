@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatIconModule } from '@angular/material/icon';
+import { Router } from '@angular/router';
 import { Language, TranslationService } from '../services/translation.service';
 
 @Component({
@@ -102,12 +103,21 @@ import { Language, TranslationService } from '../services/translation.service';
 })
 export class LanguageSelectorComponent {
   private translationService = inject(TranslationService);
+  private router = inject(Router);
 
   // Use computed instead of Observable
   currentLanguage = computed(() => this.translationService.currentLanguage$());
   supportedLanguages = this.translationService.supportedLanguages;
 
   selectLanguage(language: Language): void {
-    this.translationService.setLanguage(language);
+    // Only proceed if we're actually changing to a different language
+    if (this.currentLanguage().code !== language.code) {
+      this.translationService.setLanguage(language);
+      
+      // Use full page reload instead of router refresh to ensure proper CSS application
+      setTimeout(() => {
+        window.location.reload();
+      }, 100);
+    }
   }
 }

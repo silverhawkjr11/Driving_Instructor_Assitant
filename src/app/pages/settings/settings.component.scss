@@ -2,6 +2,9 @@
   padding: 24px;
   max-width: 800px;
   margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
 
 .settings-card {
@@ -32,6 +35,7 @@
     mat-card-subtitle {
       font-size: 16px;
       margin-top: 8px;
+      color: rgba(255, 255, 255, 0.7);
     }
   }
 
@@ -40,8 +44,9 @@
   }
 }
 
-.theme-selection {
-  .theme-selector {
+// Common styles for both theme and language selectors
+.theme-selection, .language-selection {
+  .theme-selector, .language-selector {
     width: 100%;
     max-width: 400px;
     margin-bottom: 24px;
@@ -75,7 +80,8 @@
     }
   }
 
-  .current-theme-info {
+  // Info boxes
+  .current-theme-info, .current-language-info {
     padding: 16px;
     background: rgba(255, 255, 255, 0.05);
     border-radius: 12px;
@@ -94,7 +100,7 @@
         color: white;
       }
 
-      &.theme-note {
+      &.theme-note, &.language-note {
         display: flex;
         align-items: center;
         gap: 8px;
@@ -113,10 +119,53 @@
   }
 }
 
+// Language-specific styles
+.language-selection {
+  .language-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+
+    .flag {
+      font-size: 18px;
+      min-width: 24px;
+      text-align: center;
+    }
+
+    .language-name {
+      font-weight: 500;
+      flex: 1;
+    }
+
+    .language-english {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.6);
+      font-style: italic;
+    }
+  }
+
+  // Override for language dropdown options
+  ::ng-deep .mat-mdc-option {
+    .language-option {
+      color: inherit;
+      
+      .language-english {
+        color: rgba(0, 0, 0, 0.6);
+      }
+    }
+
+    &.mat-mdc-option-active .language-option .language-english {
+      color: rgba(255, 255, 255, 0.6);
+    }
+  }
+}
+
 // Responsive design
 @media (max-width: 768px) {
   .settings-container {
     padding: 16px;
+    gap: 16px;
   }
 
   .settings-card {
@@ -143,7 +192,8 @@
     }
   }
 
-  .theme-selection .theme-selector {
+  .theme-selection .theme-selector,
+  .language-selection .language-selector {
     max-width: 100%;
   }
 }

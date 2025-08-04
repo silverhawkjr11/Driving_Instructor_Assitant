@@ -10,6 +10,7 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { Subject, takeUntil, combineLatest, map } from 'rxjs';
 import { StudentService } from '../services/student.service';
+import { TranslationService } from '../services/translation.service';
 import { Student } from '../../models/student.model';
 import { Lesson } from '../../models/lesson.model';
 import { FullCalendarModule } from '@fullcalendar/angular';
@@ -18,6 +19,12 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import { AddEventDialogComponent } from '../event-dialog/event-dialog.component';
+
+// Import locales for FullCalendar
+import heLocale from '@fullcalendar/core/locales/he';
+import arLocale from '@fullcalendar/core/locales/ar';
+import esLocale from '@fullcalendar/core/locales/es';
+import frLocale from '@fullcalendar/core/locales/fr';
 
 export type CalendarView = 'day' | 'week' | 'month';
 
@@ -61,6 +68,7 @@ interface CalendarEvent {
 })
 export class CalendarComponent implements OnInit, OnDestroy {
   private studentService = inject(StudentService);
+  private translationService = inject(TranslationService);
   private dialog = inject(MatDialog);
   private destroy$ = new Subject<void>();
 
@@ -70,12 +78,24 @@ export class CalendarComponent implements OnInit, OnDestroy {
   students = signal<Student[]>([]);
   lessons = signal<CalendarLesson[]>([]);
   
+  // Computed values for translations
+  currentLanguage = computed(() => this.translationService.currentLanguage$());
+  
   // Student colors for consistent lesson display
   private studentColors = [
     '#1976d2', '#388e3c', '#f57c00', '#7b1fa2', 
     '#303f9f', '#0097a7', '#689f38', '#f9a825',
     '#e64a19', '#5d4037', '#455a64', '#c2185b'
   ];
+
+  // FullCalendar locale mapping
+  private localeMap = {
+    'en': null, // English is default
+    'he': heLocale,
+    'ar': arLocale,
+    'es': esLocale,
+    'fr': frLocale
+  };
 
   calendarOptions: CalendarOptions = {
     initialView: 'timeGridWeek',
@@ -111,15 +131,56 @@ export class CalendarComponent implements OnInit, OnDestroy {
     eventClick: this.handleEventClick.bind(this),
     eventDrop: this.handleEventDrop.bind(this),
     eventChange: this.handleEventChange.bind(this),
+    // Dynamic button text based on current language
+    buttonText: {
+      today: this.t('today'),
+      month: this.t('month'),
+      week: this.t('week'),
+      day: this.t('day')
+    },
+    locale: this.getCurrentLocale() || undefined,
+    direction: this.translationService.isRTL() ? 'rtl' : 'ltr'
   };
 
   ngOnInit() {
     this.loadStudentsAndLessons();
+    
+    // Watch for language changes and update calendar using effect
+    // Since currentLanguage$ is a computed signal, we'll use effect to watch changes
+    // For now, we'll check for changes manually or use a different approach
+    this.updateCalendarLocale(); // Initial setup
   }
 
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  // Translation helper method
+  t(key: string, params?: { [key: string]: string | number }): string {
+    return this.translationService.translate(key, params);
+  }
+
+  private getCurrentLocale() {
+    const langCode = this.translationService.getCurrentLanguageCode();
+    return this.localeMap[langCode as keyof typeof this.localeMap] || null;
+  }
+
+  private updateCalendarLocale() {
+    const newLocale = this.getCurrentLocale() || undefined;
+    const isRTL = this.translationService.isRTL();
+    
+    this.calendarOptions = {
+      ...this.calendarOptions,
+      locale: newLocale,
+      direction: isRTL ? 'rtl' : 'ltr',
+      buttonText: {
+        today: this.t('today'),
+        month: this.t('month'),
+        week: this.t('week'),
+        day: this.t('day')
+      }
+    };
   }
 
   private loadStudentsAndLessons() {
@@ -188,32 +249,32 @@ export class CalendarComponent implements OnInit, OnDestroy {
   }
 
   private createLessonDateTime(lesson: CalendarLesson): Date {
-  const lessonDate = new Date(lesson.date);
-  
-  // Check if startTime exists and is a valid string
-  if (lesson.startTime && typeof lesson.startTime === 'string' && lesson.startTime.includes(':')) {
-    try {
-      const [hours, minutes] = lesson.startTime.split(':').map(Number);
-      // Validate the parsed hours and minutes
-      if (!isNaN(hours) && !isNaN(minutes) && hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59) {
-        lessonDate.setHours(hours, minutes, 0, 0);
-      } else {
-        // Fallback to default time if parsing fails
-        console.warn(`Invalid time format for lesson ${lesson.id}: ${lesson.startTime}`);
+    const lessonDate = new Date(lesson.date);
+    
+    // Check if startTime exists and is a valid string
+    if (lesson.startTime && typeof lesson.startTime === 'string' && lesson.startTime.includes(':')) {
+      try {
+        const [hours, minutes] = lesson.startTime.split(':').map(Number);
+        // Validate the parsed hours and minutes
+        if (!isNaN(hours) && !isNaN(minutes) && hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59) {
+          lessonDate.setHours(hours, minutes, 0, 0);
+        } else {
+          // Fallback to default time if parsing fails
+          console.warn(`Invalid time format for lesson ${lesson.id}: ${lesson.startTime}`);
+          lessonDate.setHours(9, 0, 0, 0); // Default to 9:00 AM
+        }
+      } catch (error) {
+        console.error(`Error parsing startTime for lesson ${lesson.id}:`, error);
         lessonDate.setHours(9, 0, 0, 0); // Default to 9:00 AM
       }
-    } catch (error) {
-      console.error(`Error parsing startTime for lesson ${lesson.id}:`, error);
+    } else {
+      // Default time if startTime is not available or invalid
+      console.warn(`Missing or invalid startTime for lesson ${lesson.id}:`, lesson.startTime);
       lessonDate.setHours(9, 0, 0, 0); // Default to 9:00 AM
     }
-  } else {
-    // Default time if startTime is not available or invalid
-    console.warn(`Missing or invalid startTime for lesson ${lesson.id}:`, lesson.startTime);
-    lessonDate.setHours(9, 0, 0, 0); // Default to 9:00 AM
+    
+    return lessonDate;
   }
-  
-  return lessonDate;
-}
 
   private getStudentColor(studentId: string): string {
     const hash = studentId.split('').reduce((a, b) => {
@@ -282,7 +343,7 @@ export class CalendarComponent implements OnInit, OnDestroy {
       );
       
       if (!student) {
-        alert('Student not found');
+        alert(this.t('student_not_found'));
         return;
       }
 
@@ -307,13 +368,13 @@ export class CalendarComponent implements OnInit, OnDestroy {
       this.loadAllLessons(this.students());
     } catch (error) {
       console.error('Error creating lesson:', error);
-      alert('Failed to create lesson');
+      alert(this.t('failed_to_create_lesson'));
     }
   }
 
   private editLesson(lesson: CalendarLesson) {
-    // Open edit dialog - for now use prompts
-    const newNotes = prompt('Lesson notes:', lesson.notes || '');
+    // Open edit dialog - for now use prompts with translated text
+    const newNotes = prompt(this.t('lesson_notes'), lesson.notes || '');
     if (newNotes !== null) {
       this.updateLessonNotes(lesson, newNotes);
     }
@@ -334,6 +395,7 @@ export class CalendarComponent implements OnInit, OnDestroy {
       this.loadAllLessons(this.students());
     } catch (error) {
       console.error('Error updating lesson:', error);
+      alert(this.t('failed_to_update_lesson'));
     }
   }
 
@@ -350,6 +412,7 @@ export class CalendarComponent implements OnInit, OnDestroy {
       this.loadAllLessons(this.students());
     } catch (error) {
       console.error('Error updating lesson duration:', error);
+      alert(this.t('failed_to_update_lesson'));
     }
   }
 
@@ -370,6 +433,7 @@ export class CalendarComponent implements OnInit, OnDestroy {
       this.updateCalendarEvents(updatedLessons);
     } catch (error) {
       console.error('Error updating lesson notes:', error);
+      alert(this.t('failed_to_update_lesson'));
     }
   }
 

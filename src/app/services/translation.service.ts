@@ -336,6 +336,79 @@ export class TranslationService {
       fr: 'Échec de mise à jour de leçon'
 },
 
+// Add these translations to your translation service translations object:
+
+  'theme_settings': {
+    en: 'Theme Settings',
+    he: 'הגדרות ערכת נושא',
+    ar: 'إعدادات المظهر',
+    es: 'Configuración del Tema',
+    fr: 'Paramètres du Thème'
+  },
+  'choose_theme_subtitle': {
+    en: 'Choose your preferred color theme',
+    he: 'בחר את ערכת הצבעים המועדפת עליך',
+    ar: 'اختر مظهر الألوان المفضل لديك',
+    es: 'Elige tu tema de colores preferido',
+    fr: 'Choisissez votre thème de couleurs préféré'
+  },
+  'select_theme': {
+    en: 'Select Theme',
+    he: 'בחר ערכת נושא',
+    ar: 'اختر المظهر',
+    es: 'Seleccionar Tema',
+    fr: 'Sélectionner le Thème'
+  },
+  'current_theme': {
+    en: 'Current Theme',
+    he: 'ערכת נושא נוכחית',
+    ar: 'المظهر الحالي',
+    es: 'Tema Actual',
+    fr: 'Thème Actuel'
+  },
+  'theme_applies_all_pages': {
+    en: 'Theme applies to all pages',
+    he: 'ערכת הנושא חלה על כל הדפים',
+    ar: 'يطبق المظهر على جميع الصفحات',
+    es: 'El tema se aplica a todas las páginas',
+    fr: 'Le thème s\'applique à toutes les pages'
+  },
+  'language_settings': {
+    en: 'Language Settings',
+    he: 'הגדרות שפה',
+    ar: 'إعدادات اللغة',
+    es: 'Configuración de Idioma',
+    fr: 'Paramètres de Langue'
+  },
+  'choose_language_subtitle': {
+    en: 'Choose your preferred language',
+    he: 'בחר את השפה המועדפת עליך',
+    ar: 'اختر لغتك المفضلة',
+    es: 'Elige tu idioma preferido',
+    fr: 'Choisissez votre langue préférée'
+  },
+  'select_language': {
+    en: 'Select Language',
+    he: 'בחר שפה',
+    ar: 'اختر اللغة',
+    es: 'Seleccionar Idioma',
+    fr: 'Sélectionner la Langue'
+  },
+  'current_language': {
+    en: 'Current Language',
+    he: 'שפה נוכחית',
+    ar: 'اللغة الحالية',
+    es: 'Idioma Actual',
+    fr: 'Langue Actuelle'
+  },
+  'language_reload_note': {
+    en: 'Page will reload when language is changed',
+    he: 'הדף יירענן כשהשפה תשתנה',
+    ar: 'ستعاد تحميل الصفحة عند تغيير اللغة',
+    es: 'La página se recargará al cambiar el idioma',
+    fr: 'La page se rechargera lors du changement de langue'
+  },
+
     // Progress & Test Readiness
     'lessons_completed': {
       en: 'Lessons Completed',

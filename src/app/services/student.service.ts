@@ -106,6 +106,7 @@ export class StudentService {
     );
   }
 
+  // Updated getStudentLessons method in student.service.ts
   getStudentLessons(studentId: string): Observable<Lesson[]> {
     if (!studentId) {
       console.log('No studentId provided, returning empty array');
@@ -128,8 +129,8 @@ export class StudentService {
             createdAt: lesson['createdAt'] instanceof Timestamp ?
               lesson['createdAt'].toDate() :
               lesson['createdAt'] ? new Date(lesson['createdAt']) : new Date(),
-            // Ensure required fields have default values
-            startTime: lesson['startTime'] || '', // Handle startTime field
+            // Ensure startTime is always a string
+            startTime: this.formatStartTimeFromFirestore(lesson['startTime']),
             duration: lesson['duration'] || 0,
             cost: lesson['cost'] || 0,
             notes: lesson['notes'] || '',
@@ -147,6 +148,42 @@ export class StudentService {
       return of([]);
     }
   }
+
+// Add this helper method to the StudentService class
+private formatStartTimeFromFirestore(startTime: any): string {
+  if (typeof startTime === 'string') {
+    return startTime;
+  }
+  
+  if (startTime instanceof Date) {
+    return startTime.toLocaleTimeString('en-US', { 
+      hour: '2-digit', 
+      minute: '2-digit',
+      hour12: false 
+    });
+  }
+  
+  // Handle Firestore Timestamp
+  if (startTime && typeof startTime === 'object' && 'toDate' in startTime) {
+    return startTime.toDate().toLocaleTimeString('en-US', { 
+      hour: '2-digit', 
+      minute: '2-digit',
+      hour12: false 
+    });
+  }
+  
+  // Handle Timestamp objects with seconds property
+  if (startTime && typeof startTime === 'object' && 'seconds' in startTime) {
+    const date = new Date(startTime.seconds * 1000);
+    return date.toLocaleTimeString('en-US', { 
+      hour: '2-digit', 
+      minute: '2-digit',
+      hour12: false 
+    });
+  }
+  
+  return '00:00'; // fallback
+}
 
   async addStudent(student: Partial<Student>): Promise<DocumentReference<DocumentData>> {
     const currentUser = this.auth.currentUser;

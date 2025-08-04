@@ -1,23 +1,151 @@
+// src/app/app.component.scss
 mat-sidenav-container {
   height: 100vh;
   background: black;
-  /* Adjust as needed */
 }
 
 .example-container {
   height: 100vh;
-  /* Make it take the full viewport height */
   overflow: hidden;
-  /* Avoid overflow issues */
+  /* Always keep layout LTR */
+  direction: ltr !important;
 }
 
 mat-drawer {
   width: 250px;
-  /* Adjust the drawer width */
+  /* Keep drawer structure LTR */
+  direction: ltr !important;
 }
 
 mat-drawer-content {
   display: flex;
   flex-direction: column;
   height: 100%;
+  /* Keep main layout LTR */
+  direction: ltr !important;
+}
+
+/* Layout-specific classes */
+.layout-container {
+  direction: ltr !important;
+}
+
+.content-area {
+  /* Allow content to inherit page direction */
+  direction: inherit;
+}
+
+/* Toolbar specific styles */
+.app-toolbar {
+  direction: ltr !important;
+  
+  .toolbar-left {
+    display: flex;
+    align-items: center;
+    direction: ltr !important;
+  }
+  
+  .toolbar-right {
+    display: flex;
+    align-items: center;
+    direction: ltr !important;
+  }
+  
+  .toolbar-title {
+    /* Allow title text to follow page direction */
+    direction: inherit;
+    unicode-bidi: plaintext;
+  }
+}
+
+/* Sidebar styles */
+.sidebar-content {
+  direction: ltr !important;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  
+  .sidebar-header {
+    direction: ltr !important;
+    
+    h3 {
+      /* Allow header text to use appropriate direction */
+      direction: inherit;
+      unicode-bidi: plaintext;
+      text-align: start;
+    }
+  }
+  
+  .sidebar-nav {
+    direction: ltr !important;
+    
+    .nav-link {
+      direction: ltr !important;
+      display: flex !important;
+      align-items: center;
+      justify-content: flex-start !important;
+      
+      mat-icon {
+        /* Keep icons on the left */
+        margin-right: 8px !important;
+        margin-left: 0 !important;
+      }
+      
+      span {
+        /* Allow text to follow natural direction */
+        direction: inherit;
+        unicode-bidi: plaintext;
+        flex: 1;
+        text-align: start;
+      }
+    }
+  }
+  
+  .sidebar-footer {
+    direction: ltr !important;
+    margin-top: auto;
+    
+    .logout-btn {
+      direction: ltr !important;
+      display: flex !important;
+      align-items: center;
+      justify-content: flex-start !important;
+      
+      mat-icon {
+        margin-right: 8px !important;
+        margin-left: 0 !important;
+      }
+      
+      span {
+        direction: inherit;
+        unicode-bidi: plaintext;
+      }
+    }
+  }
+}
+
+/* Main content area */
+.main-content {
+  /* Allow main content to use page direction */
+  direction: inherit;
+  unicode-bidi: plaintext;
+  padding: 16px;
+}
+
+/* RTL-specific overrides for text content only */
+[dir="rtl"] {
+  .sidebar-content,
+  .app-toolbar {
+    /* Keep layout LTR even when page is RTL */
+    direction: ltr !important;
+  }
+  
+  /* But allow text within to be RTL */
+  .sidebar-nav .nav-link span,
+  .sidebar-header h3,
+  .logout-btn span,
+  .toolbar-title {
+    direction: rtl;
+    unicode-bidi: plaintext;
+  }
 }
