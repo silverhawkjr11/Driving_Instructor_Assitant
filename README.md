@@ -2,8 +2,9 @@
 
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.0.2.
 
-## Public Server
+## Live Demo
 
+Check out our live application here:
 https://driving-instructor-assistant.web.app
 
 ## Development server
