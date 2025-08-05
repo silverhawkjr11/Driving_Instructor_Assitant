@@ -1,9 +1,19 @@
 {
+  "hosting": {
+    "public": "dist/browser",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  },
   "emulators": {
-    "dataconnect": {
-      "dataDir": "dataconnect/.dataconnect/pgliteData",
-      "port": 4000
-    },
     "auth": {
       "port": 3000
     },
@@ -12,9 +22,6 @@
       "port": 5000
     },
     "singleProjectMode": true
-  },
-  "dataconnect": {
-    "source": "dataconnect"
   },
   "firestore": {
     "rules": "firestore.rules",
