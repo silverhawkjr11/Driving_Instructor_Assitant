@@ -17,7 +17,8 @@ import {
   DocumentData,
   Timestamp,
   getDocs,
-  docData
+  docData,
+  getDoc 
 } from '@angular/fire/firestore';
 import { Auth } from '@angular/fire/auth';
 import { 
@@ -384,32 +385,73 @@ private formatStartTimeFromFirestore(startTime: any): string {
   }
 
   async recordPayment(studentId: string, amount: number, method: string = 'CASH'): Promise<void> {
-    if (!studentId || amount <= 0) {
-      throw new Error('Valid student ID and positive amount are required');
-    }
-
-    try {
-      // Add payment to payments subcollection
-      const paymentsRef = collection(this.firestore, `students/${studentId}/payments`);
-      await addDoc(paymentsRef, {
-        amount,
-        method,
-        date: serverTimestamp(),
-        createdAt: serverTimestamp()
-      });
-
-      // Update student balance and payment status
-      const studentRef = doc(this.firestore, 'students', studentId);
-      await updateDoc(studentRef, {
-        balance: increment(-amount), // Reduce balance by payment amount
-        lastPaymentDate: serverTimestamp(),
-        paymentStatus: 'PAID_UP' // Assume paid up after payment - you might want to calculate this
-      });
-    } catch (error) {
-      console.error('Error recording payment:', error);
-      throw error;
-    }
+  if (!studentId || amount <= 0) {
+    throw new Error('Valid student ID and positive amount are required');
   }
+
+  try {
+    // Get current student data first
+    const studentRef = doc(this.firestore, 'students', studentId);
+    const studentSnapshot = await getDoc(studentRef);
+    
+    if (!studentSnapshot.exists()) {
+      throw new Error('Student not found');
+    }
+
+    const currentStudent = studentSnapshot.data() as Student;
+    const currentBalance = currentStudent.balance || 0;
+    const newBalance = currentBalance - amount;
+
+    // Determine payment status
+    let paymentStatus: string;
+    if (newBalance <= 0) {
+      paymentStatus = 'PAID_UP';
+    } else {
+      paymentStatus = 'OWES_MONEY';
+    }
+
+    // Update student with new balance and payment info
+    await updateDoc(studentRef, {
+      balance: newBalance,
+      lastPaymentDate: serverTimestamp(),
+      paymentStatus: paymentStatus
+    });
+
+    // If student is paid up, mark unpaid lessons as paid
+    if (newBalance <= 0) {
+      await this.markUnpaidLessonsAsPaid(studentId);
+    }
+
+  } catch (error) {
+    console.error('Error recording payment:', error);
+    throw error;
+  }
+}
+
+// Simple helper to mark all unpaid lessons as paid
+private async markUnpaidLessonsAsPaid(studentId: string): Promise<void> {
+  try {
+    const lessonsRef = collection(this.firestore, `students/${studentId}/lessons`);
+    const unpaidQuery = query(lessonsRef, where('isPaid', '==', false));
+    const unpaidSnapshot = await getDocs(unpaidQuery);
+
+    if (unpaidSnapshot.empty) {
+      return;
+    }
+
+    // Update each unpaid lesson to paid
+    const updatePromises = unpaidSnapshot.docs.map(lessonDoc => 
+      updateDoc(lessonDoc.ref, { isPaid: true })
+    );
+
+    await Promise.all(updatePromises);
+    console.log(`Marked ${unpaidSnapshot.docs.length} lessons as paid for student ${studentId}`);
+
+  } catch (error) {
+    console.error('Error marking lessons as paid:', error);
+    // Don't throw - payment was already recorded
+  }
+}
 
   async updateProgressNotes(studentId: string, notes: string): Promise<void> {
     if (!studentId) {

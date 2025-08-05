@@ -4,7 +4,7 @@ This project was generated using [Angular CLI](https://github.com/angular/angula
 
 ## Public Server
 
-https://driving-instructor-assistant.web.app/my-students
+https://driving-instructor-assistant.web.app
 
 ## Development server
 

@@ -193,7 +193,7 @@ export class TranslationService {
     },
     'balance_owed': {
       en: 'Balance Owed',
-      he: 'יתרה חייבת',
+      he: 'יתרת חוב',
       ar: 'الرصيد المستحق',
       es: 'Saldo Adeudado',
       fr: 'Solde Dû'

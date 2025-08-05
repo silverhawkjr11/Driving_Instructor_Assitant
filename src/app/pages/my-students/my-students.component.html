@@ -108,15 +108,19 @@
 
         <!-- Quick Stats -->
         <div class="student-stats">
-          <div class="stat-card payment-stat" [ngClass]="{'warning': (student.balance || 0) > 0}">
-            <div class="stat-icon">
-              <mat-icon>account_balance_wallet</mat-icon>
-            </div>
-            <div class="stat-info">
-              <div class="stat-value">{{ (student.balance || 0) | currency:'USD':'symbol':'1.2-2' }}</div>
-              <div class="stat-label">{{'balance' | translate}} {{ (student.balance || 0) > 0 ? ('balance_owed' | translate) : (student.balance || 0) < 0 ? ('credit' | translate) : '' }}</div>
+         <div class="stat-card payment-stat" [ngClass]="getBalanceStatusClass(student.balance)">
+          <div class="stat-icon">
+            <mat-icon>account_balance_wallet</mat-icon>
+          </div>
+          <div class="stat-info">
+            <div class="stat-value">{{ getAbsoluteBalance(student.balance) | currency:'ILS':'symbol':'1.2-2' }}</div>
+            <div class="stat-label">
+              {{'balance' | translate}} 
+              {{ (student.balance || 0) > 0 ? ('balance_owed' | translate) : 
+                (student.balance || 0) < 0 ? ('credit' | translate) : '' }}
             </div>
           </div>
+</div>
 
           <div class="stat-card lessons-stat">
             <div class="stat-icon">
@@ -182,7 +186,7 @@
               </div>
               <div class="lesson-duration">{{ lesson.duration }}min</div>
               <div class="lesson-cost" [ngClass]="{'paid': lesson.isPaid, 'unpaid': !lesson.isPaid}">
-                {{ (lesson.cost || 0) | currency:'USD':'symbol':'1.2-2' }}
+                {{ (lesson.cost || 0) | currency:'ILS':'symbol':'1.2-2' }}
                 <mat-icon>{{ lesson.isPaid ? 'check_circle' : 'schedule' }}</mat-icon>
               </div>
               <div class="lesson-notes" *ngIf="lesson.notes">{{ lesson.notes }}</div>

@@ -175,10 +175,6 @@ export class MyStudentsComponent implements OnDestroy {
         console.error('Error loading students:', error);
         this.isLoading.set(false);
         return of([]);
-      }),
-      finalize(() => {
-        // Always set loading to false when stream completes or errors
-        this.isLoading.set(false);
       })
     ).subscribe({
       next: (students) => {
@@ -222,8 +218,13 @@ export class MyStudentsComponent implements OnDestroy {
             // Reset current student index if no students
             this.currentStudentIndex.set(0);
           }
+
+          // IMPORTANT: Always set loading to false after processing
+          this.isLoading.set(false);
+          
         } catch (error) {
           console.error('Error processing students data:', error);
+          this.isLoading.set(false);
         }
       },
       error: (error) => {
@@ -530,16 +531,31 @@ export class MyStudentsComponent implements OnDestroy {
     switch (status) {
       case PaymentStatus.PAID_UP:
       case 'PAID_UP':
-        return 'Paid Up';
+        return 'paid_up';
       case PaymentStatus.OWES_MONEY:
       case 'OWES_MONEY':
-        return 'Owes Money';
+        return 'owes_money';
       case PaymentStatus.OVERDUE:
       case 'OVERDUE':
         return 'Overdue';
       default:
         return 'Unknown';
     }
+  }
+
+  // Add this method to your MyStudentsComponent class
+  getAbsoluteBalance(balance: number): number {
+    return Math.abs(balance || 0);
+  }
+
+  // Add this method to get the balance status class
+  getBalanceStatusClass(balance: number): string {
+    if ((balance || 0) > 0) {
+      return 'warning'; // Red for money owed
+    } else if ((balance || 0) < 0) {
+      return 'credit'; // Green for credit/overpaid
+    }
+    return ''; // Default styling for zero balance
   }
 
   getTestProgressPercentage(lessonsCompleted: number): number {

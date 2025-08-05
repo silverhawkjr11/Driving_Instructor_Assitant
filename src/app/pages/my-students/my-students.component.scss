@@ -371,6 +371,15 @@
       }
     }
 
+    &.credit {
+      border-color: rgba(76, 175, 80, 0.5);
+      background: rgba(76, 175, 80, 0.1);
+
+      .stat-value {
+        color: #4caf50;
+      }
+    }
+
     .stat-icon {
       display: flex;
       align-items: center;
