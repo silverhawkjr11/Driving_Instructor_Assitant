@@ -1,47 +1,109 @@
-<h2 mat-dialog-title>{{ data.event ? 'Edit Event' : 'Add Event' }}</h2>
+<h2 mat-dialog-title>
+  <mat-icon>{{ data.event || data.lesson ? 'edit' : 'add' }}</mat-icon>
+  {{ data.event || data.lesson ? 'Edit Lesson' : 'Schedule New Lesson' }}
+</h2>
+
 <mat-dialog-content>
   <form [formGroup]="eventForm" class="event-form">
+    
+    <!-- Student Selection -->
     <mat-form-field appearance="fill" class="full-width">
-      <mat-label>Title</mat-label>
-      <input matInput formControlName="title" required>
+      <mat-label>Student</mat-label>
+      <input 
+        matInput 
+        formControlName="studentName" 
+        required
+        [matAutocomplete]="studentAuto"
+        [placeholder]="(data.event || data.lesson) ? 'Student (cannot be changed)' : 'Type to search students...'">
+      <mat-autocomplete #studentAuto="matAutocomplete" [displayWith]="displayStudentName">
+        @for (student of filteredStudents; track student.id) {
+          <mat-option [value]="student.name" (click)="onStudentSelected(student)">
+            <div class="student-option">
+              <span class="student-name">{{ student.name }}</span>
+              <span class="student-phone">{{ student.phone }}</span>
+            </div>
+          </mat-option>
+        }
+        @if (filteredStudents.length === 0 && !(data.event || data.lesson)) {
+          <mat-option disabled>No students found</mat-option>
+        }
+      </mat-autocomplete>
+      @if (data.event || data.lesson) {
+        <mat-hint>Student cannot be changed when editing a lesson</mat-hint>
+      }
+      @if (eventForm.get('studentName')?.hasError('required') && eventForm.get('studentName')?.touched) {
+        <mat-error>Student name is required</mat-error>
+      }
     </mat-form-field>
 
+    <!-- Date -->
     <mat-form-field appearance="fill" class="full-width">
       <mat-label>Date</mat-label>
-      <input matInput [matDatepicker]="picker" formControlName="date">
+      <input matInput [matDatepicker]="picker" formControlName="date" required>
       <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
       <mat-datepicker #picker></mat-datepicker>
     </mat-form-field>
 
-    <div class="time-inputs">
+    <!-- Time and Duration Row -->
+    <div class="time-duration-row">
       <mat-form-field appearance="fill">
         <mat-label>Start Time</mat-label>
         <mat-select formControlName="startTime">
           @for (time of timeOptions; track time) {
-          <mat-option [value]="time">{{time}}</mat-option>
+            <mat-option [value]="time">{{ time }}</mat-option>
           }
         </mat-select>
       </mat-form-field>
 
       <mat-form-field appearance="fill">
-        <mat-label>End Time</mat-label>
-        <mat-select formControlName="endTime">
-          @for (time of timeOptions; track time) {
-          <mat-option [value]="time">{{time}}</mat-option>
+        <mat-label>Duration (min)</mat-label>
+        <mat-select formControlName="duration">
+          @for (duration of durationOptions; track duration) {
+            <mat-option [value]="duration">{{ duration }} min</mat-option>
           }
         </mat-select>
       </mat-form-field>
+
+      <!-- End Time Display -->
+      <div class="end-time-display">
+        <span class="end-time-label">End:</span>
+        <span class="end-time-value">{{ getEndTime() }}</span>
+      </div>
     </div>
 
+    <!-- Cost -->
     <mat-form-field appearance="fill" class="full-width">
-      <mat-label>Color</mat-label>
-      <input matInput type="color" formControlName="color">
+      <mat-label>Cost</mat-label>
+      <input matInput type="number" formControlName="cost" required min="0">
+      <span matTextPrefix>₪&nbsp;</span>
+      @if (eventForm.get('cost')?.hasError('required') && eventForm.get('cost')?.touched) {
+        <mat-error>Cost is required</mat-error>
+      }
+      @if (eventForm.get('cost')?.hasError('min') && eventForm.get('cost')?.touched) {
+        <mat-error>Cost must be positive</mat-error>
+      }
     </mat-form-field>
+
+    <!-- Notes -->
+    <mat-form-field appearance="fill" class="full-width">
+      <mat-label>Notes (optional)</mat-label>
+      <textarea matInput formControlName="notes" rows="3" placeholder="Add any notes about this lesson..."></textarea>
+    </mat-form-field>
+
   </form>
 </mat-dialog-content>
+
 <mat-dialog-actions align="end">
+  @if (data.event || data.lesson) {
+    <button mat-button color="warn" (click)="onDelete()" class="delete-btn">
+      <mat-icon>delete</mat-icon>
+      Delete Lesson
+    </button>
+  }
+  <div class="spacer"></div>
   <button mat-button (click)="onCancel()">Cancel</button>
   <button mat-raised-button color="primary" [disabled]="!eventForm.valid" (click)="onSubmit()">
-    {{ data.event ? 'Update' : 'Add' }}
+    <mat-icon>{{ data.event || data.lesson ? 'save' : 'add' }}</mat-icon>
+    {{ data.event || data.lesson ? 'Update' : 'Schedule' }} Lesson
   </button>
 </mat-dialog-actions>

@@ -271,8 +271,7 @@ export class CalendarComponent implements OnInit, OnDestroy {
       // Default time if startTime is not available or invalid
       console.warn(`Missing or invalid startTime for lesson ${lesson.id}:`, lesson.startTime);
       lessonDate.setHours(9, 0, 0, 0); // Default to 9:00 AM
-    }
-    
+   }
     return lessonDate;
   }
 
@@ -296,7 +295,7 @@ export class CalendarComponent implements OnInit, OnDestroy {
 
   handleEventClick(clickInfo: EventClickArg) {
     const lesson = clickInfo.event.extendedProps['lesson'] as CalendarLesson;
-    this.editLesson(lesson);
+    this.openEditLessonDialog(lesson, clickInfo.event);
   }
 
   handleEventDrop(dropInfo: EventDropArg) {
@@ -319,7 +318,8 @@ export class CalendarComponent implements OnInit, OnDestroy {
   // Dialog Methods
   openAddLessonDialog(startTime?: Date) {
     const dialogRef = this.dialog.open(AddEventDialogComponent, {
-      width: '400px',
+      width: '500px',
+      maxWidth: '90vw',
       data: {
         date: startTime || this.selectedDate(),
         hour: startTime ? startTime.getHours() : 9,
@@ -329,34 +329,113 @@ export class CalendarComponent implements OnInit, OnDestroy {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.createLessonFromEvent(result);
+        if (result.delete) {
+          this.handleLessonDeletion(result);
+        } else {
+          this.createLessonFromEvent(result);
+        }
       }
     });
   }
 
+  openEditLessonDialog(lesson: CalendarLesson, event?: any) {
+    const dialogRef = this.dialog.open(AddEventDialogComponent, {
+      width: '500px',
+      maxWidth: '90vw',
+      data: {
+        lesson: lesson,
+        event: event,
+        students: this.students()
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        if (result.delete) {
+          this.handleLessonDeletion(result);
+        } else if (result.isEdit) {
+          this.updateLessonFromDialog(result);
+        }
+      }
+    });
+  }
+
+  private async handleLessonDeletion(result: any) {
+    const lesson = result.lesson || result.event?.extendedProps?.lesson;
+    if (!lesson) return;
+
+    // Show confirmation dialog
+    const confirmed = confirm(`Are you sure you want to delete this lesson with ${lesson.studentName}?`);
+    if (!confirmed) return;
+
+    try {
+      const student = this.students().find(s => s.name === lesson.studentName);
+      if (!student) {
+        alert('Student not found');
+        return;
+      }
+
+      await this.studentService.deleteLesson(student.id!, lesson.id!);
+      
+      // Reload lessons
+      this.loadAllLessons(this.students());
+    } catch (error) {
+      console.error('Error deleting lesson:', error);
+      alert('Failed to delete lesson');
+    }
+  }
+
+  private async updateLessonFromDialog(result: any) {
+    try {
+      const originalLesson = result.originalLesson || result.originalEvent?.extendedProps?.lesson;
+      if (!originalLesson) return;
+
+      const student = this.students().find(s => s.name === originalLesson.studentName);
+      if (!student) {
+        alert('Student not found');
+        return;
+      }
+
+      const updates = {
+        date: result.start,
+        startTime: this.formatTimeFromDate(result.start),
+        duration: result.duration,
+        cost: result.cost,
+        notes: result.notes
+      };
+
+      await this.studentService.updateLesson(student.id!, originalLesson.id!, updates);
+      
+      // Reload lessons
+      this.loadAllLessons(this.students());
+    } catch (error) {
+      console.error('Error updating lesson:', error);
+      alert('Failed to update lesson');
+    }
+  }
+
   private async createLessonFromEvent(eventData: any) {
     try {
-      // Find student by name (you might want to modify the dialog to return student ID)
-      const studentName = eventData.title;
+      // Find student by name
+      const studentName = eventData.studentName || eventData.title;
       const student = this.students().find(s => 
-        s.name.toLowerCase().includes(studentName.toLowerCase())
+        s.name.toLowerCase() === studentName.toLowerCase()
       );
       
       if (!student) {
-        alert(this.t('student_not_found'));
+        alert('Student not found. Please select a valid student.');
         return;
       }
 
       const startDate = new Date(eventData.start);
       const endDate = new Date(eventData.end);
       const duration = Math.round((endDate.getTime() - startDate.getTime()) / 60000);
-
       const newLesson: Lesson = {
         date: startDate,
         startTime: this.formatTimeFromDate(startDate),
         duration: duration,
-        cost: 50, // default cost
-        notes: '',
+        cost: eventData.cost || 50,
+        notes: eventData.notes || '',
         isPaid: false,
         status: 'scheduled',
         createdAt: new Date()
@@ -368,16 +447,13 @@ export class CalendarComponent implements OnInit, OnDestroy {
       this.loadAllLessons(this.students());
     } catch (error) {
       console.error('Error creating lesson:', error);
-      alert(this.t('failed_to_create_lesson'));
+      alert('Failed to create lesson');
     }
   }
 
+  // Legacy method - can be removed
   private editLesson(lesson: CalendarLesson) {
-    // Open edit dialog - for now use prompts with translated text
-    const newNotes = prompt(this.t('lesson_notes'), lesson.notes || '');
-    if (newNotes !== null) {
-      this.updateLessonNotes(lesson, newNotes);
-    }
+    this.openEditLessonDialog(lesson);
   }
 
   private async updateLesson(lesson: CalendarLesson, newDate: Date, newStartTime: string) {
